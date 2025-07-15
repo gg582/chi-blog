@@ -1,0 +1,101 @@
+/* Styles for PostDetailPage */
+.post-detail-page {
+    /* Add any page-specific layout if needed */
+}
+
+.post-detail-page .container {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.post-detail-title {
+    font-size: 2.5em;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.post-detail-meta {
+    font-size: 1em;
+    color: #777;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.post-detail-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    line-height: 1.8;
+    color: #444;
+}
+
+/* Basic markdown element styling within the content */
+.post-detail-content h1,
+.post-detail-content h2,
+.post-detail-content h3,
+.post-detail-content h4,
+.post-detail-content h5,
+.post-detail-content h6 {
+    color: #282c34;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+
+.post-detail-content p {
+    margin-bottom: 1em;
+}
+
+.post-detail-content a {
+    color: #61dafb;
+    text-decoration: none;
+}
+
+.post-detail-content a:hover {
+    text-decoration: underline;
+}
+
+.post-detail-content ul,
+.post-detail-content ol {
+    margin-bottom: 1em;
+    padding-left: 20px;
+}
+
+.post-detail-content pre {
+    background-color: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.post-detail-content code {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    background-color: rgba(27,31,35,.05);
+    padding: .2em .4em;
+    border-radius: 3px;
+}
+
+.post-detail-content pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+}
+
+.post-detail-content blockquote {
+    border-left: 4px solid #dfe2e5;
+    color: #6a737d;
+    padding: 0 1em;
+    margin: 1em 0;
+}
+
+.post-detail-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+}

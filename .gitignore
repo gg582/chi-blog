@@ -1,0 +1,54 @@
+# Go Lang (Backend)
+.idea/             # JetBrains IDEs (like GoLand)
+*.iml              # JetBrains IDEs
+.vscode/           # VS Code settings (if you don't want to share them)
+*.code-workspace   # VS Code workspace files
+
+# Binaries for Go
+*.exe              # Windows executables
+*.dll              # Windows DLLs
+*.so               # Linux/Unix shared objects
+*.dylib            # macOS dynamic libraries
+*.o                # Object files
+*.a                # Archive files
+blog-backend       # Your compiled Go executable (replace with your actual binary name if different)
+
+# Test results
+*.test             # Go test binaries
+*.out              # Go test output files
+
+# Dependency directories
+vendor/            # Go modules vendor directory (if you use it)
+go.sum             # Go module sum file (usually committed, but sometimes ignored for specific workflows)
+
+# Log files
+*.log
+logs/
+
+# Data directories (if used for temporary data or user uploads)
+data/
+uploads/           # Where uploaded files might be stored
+posts/             # If you consider blog post markdown files as generated content, you might ignore them,
+                   # but usually you want to version control these.
+                   # If posts are user-submitted, you MIGHT ignore them in production,
+                   # but typically in a blog project, they are source files.
+                   # Consider carefully if you want to version control your actual markdown posts.
+                   # If you want to commit your .md files, remove this line.
+
+ blog-frontend/node_modules/
+ blog-frontend/build/
+ blog-frontend/.env.local
+ blog-frontend/.env*.local
+ blog-frontend/dist/
+ blog-frontend/out/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# macOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db

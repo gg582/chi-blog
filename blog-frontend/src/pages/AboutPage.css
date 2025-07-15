@@ -1,0 +1,50 @@
+/* Styles for the AboutPage component */
+.about-page .container {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.about-title {
+    font-size: 2.2em;
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.about-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    line-height: 1.8;
+    color: #444;
+}
+
+/* Add any specific styling for markdown elements within .about-content if needed,
+   similar to what you might have in PostDetailPage.css */
+.about-content h1,
+.about-content h2,
+.about-content h3 {
+    color: #282c34;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+
+.about-content p {
+    margin-bottom: 1em;
+}
+
+.about-content ul,
+.about-content ol {
+    margin-bottom: 1em;
+    padding-left: 20px;
+}
+
+.about-content a {
+    color: #61dafb;
+    text-decoration: none;
+}
+
+.about-content a:hover {
+    text-decoration: underline;
+}

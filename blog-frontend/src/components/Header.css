@@ -1,0 +1,55 @@
+/* Styles for the Header component */
+.header {
+  background-color: #282c34;
+  color: white;
+  padding: 20px 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header .logo a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+.header .nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.header .nav li {
+  margin-left: 25px;
+}
+
+.header .nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.header .nav a:hover {
+  color: #61dafb; /* React blue */
+}
+
+.header .nav .new-post-btn {
+    background-color: #61dafb;
+    color: #282c34;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.header .nav .new-post-btn:hover {
+    background-color: #4dc2ea;
+}

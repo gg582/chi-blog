@@ -1,0 +1,49 @@
+/* Styles for the ContactPage component */
+.contact-page .container {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.contact-title {
+    font-size: 2.2em;
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.contact-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    line-height: 1.8;
+    color: #444;
+}
+
+/* Add any specific styling for markdown elements within .contact-content if needed */
+.contact-content h1,
+.contact-content h2,
+.contact-content h3 {
+    color: #282c34;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+
+.contact-content p {
+    margin-bottom: 1em;
+}
+
+.contact-content ul,
+.contact-content ol {
+    margin-bottom: 1em;
+    padding-left: 20px;
+}
+
+.contact-content a {
+    color: #61dafb;
+    text-decoration: none;
+}
+
+.contact-content a:hover {
+    text-decoration: underline;
+}
