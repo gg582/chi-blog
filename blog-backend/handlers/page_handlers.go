@@ -16,7 +16,7 @@ import (
 
 // GetAboutPageHandler handles fetching the content for the about page.
 func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := filepath.Join("./posts", "about.md") // Assuming about.md is in the 'posts' directory
+	filePath := filepath.Join("./about", "about.md") // Assuming about.md is in the 'posts' directory
 	
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -64,7 +64,7 @@ func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetContactPageHandler handles fetching the content for the contact page.
 func GetContactPageHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := filepath.Join("./posts", "contact.md") // Assuming contact.md is in the 'posts' directory
+	filePath := filepath.Join("./contact", "contact.md") // Assuming contact.md is in the 'posts' directory
 	
 	content, err := os.ReadFile(filePath)
 	if err != nil {
