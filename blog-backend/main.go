@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"blog-backend/handlers" // Import the handlers package
+	"github.com/gg582/chi-blog/blog-backend/handlers" // Import the handlers package
 )
 
 func main() {

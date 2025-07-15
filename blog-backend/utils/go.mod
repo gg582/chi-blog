@@ -1,4 +1,4 @@
-module github.com/chi-blog/blog-backend/utils
+module github.com/gg582/chi-blog/blog-backend/utils
 
 go 1.24.5
 

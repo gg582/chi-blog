@@ -1,4 +1,4 @@
-module github.com/chi-blog/blog-backend/handlers
+module github.com/gg582/chi-blog/blog-backend/handlers
 
 go 1.24.5
 
