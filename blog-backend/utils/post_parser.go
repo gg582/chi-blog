@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/russross/blackfriday/v2"
-	"blog-backend/models" // Import models package
+	"github.com/gg582/chi-blog/blog-backend/models" // Import models package
 )
 
 // authorRegex helps to find and extract the author from the front matter.

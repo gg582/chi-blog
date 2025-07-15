@@ -11,8 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5" // Import chi for URLParam
 
-	"blog-backend/models"
-	// "blog-backend/utils" // Now GenerateSlug is not directly called here, but its logic is inherent in the slug from URL
+	"github.com/gg582/chi-blog/blog-backend/models"
 )
 
 // CreateNewPostHandler handles the submission of a new blog post.

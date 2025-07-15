@@ -10,8 +10,8 @@ import (
 
 	"github.com/russross/blackfriday/v2"
 
-	"blog-backend/models"
-	"blog-backend/utils"
+	"github.com/gg582/chi-blog/blog-backend/models"
+	"github.com/gg582/chi-blog/blog-backend/utils"
 )
 
 // GetAboutPageHandler handles fetching the content for the about page.
