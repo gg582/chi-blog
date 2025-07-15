@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time" // For setting CreatedAt if needed
 
 	"github.com/go-chi/chi/v5" // Import chi for URLParam
 
