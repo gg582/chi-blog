@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"blog-backend/models"    // Import models package
-	"blog-backend/utils" // Import utils package
+	"github.com/gg582/blog-backend/blog-backend/models"    // Import models package
+	"github.com/gg582/blog-backend/blog-backend/utils" // Import utils package
 )
 
 // GetPostsHandler handles fetching all blog posts.
