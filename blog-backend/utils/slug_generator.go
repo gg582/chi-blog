@@ -3,7 +3,6 @@ package utils
 import (
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 // slugRegex matches any character that is NOT a letter, number, or Korean character, or a hyphen.
