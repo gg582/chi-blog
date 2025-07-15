@@ -69,7 +69,6 @@ function PostDetailPage() {
     <div className="post-detail-page">
       <Header /> {/* Header is rendered once */}
       <main className="container">
-        <h1 className="post-detail-title">{post.title}</h1>
         <p className="post-detail-meta">
           Author: {post.author} | Date: {new Date(post.createdAt).toLocaleDateString()}
         </p>

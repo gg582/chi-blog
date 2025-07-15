@@ -4,10 +4,6 @@ import './BlogPostCard.css'; // Styling for the BlogPostCard component
 function BlogPostCard({ post }) {
   return (
     <div className="blog-post-card">
-      <h2 className="post-title">
-        {/* Link to the individual post page (not yet implemented) */}
-        <a href={`/posts/${post.id}`}>{post.title}</a>
-      </h2>
       <p className="post-meta">
         {/* Display author and formatted creation date */}
         Author: {post.author} | Date: {new Date(post.createdAt).toLocaleDateString()}
