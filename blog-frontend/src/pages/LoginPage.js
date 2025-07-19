@@ -1,123 +1,136 @@
 // src/pages/LoginPage.js
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'; // Import React and useState for managing component state
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
+import { useAuth } from '../context/AuthContext'; // Import useAuth hook from your AuthContext
+import Header from '../components/Header'; // ★★★ Import the reusable Header component ★★★
 
-// Header component with navigation menu
-function Header() {
-  return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '60px',
-      backgroundColor: '#333',
-      color: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 20px',
-      fontSize: '1.1rem',
-      zIndex: 1000,
-      justifyContent: 'space-between',
-    }}>
-      <div style={{ fontWeight: 'bold' }}>My Blog</div>
-      <nav>
-        <Link to="/" style={navLinkStyle}>Home</Link>
-        <Link to="/about" style={navLinkStyle}>About</Link>
-        <Link to="/contact" style={navLinkStyle}>Contact</Link>
-      </nav>
-    </header>
-  );
-}
-const navLinkStyle = {
-  color: 'white',
-  textDecoration: 'none',
-  marginLeft: '20px',
-  fontWeight: 'normal',
-};
-
-
-
+/**
+ * LoginPage Component
+ * This component renders a login form where users can enter their username and password.
+ * It includes a Header for consistent navigation and handles form submission,
+ * communicates with the backend for authentication, updates global auth state,
+ * and navigates upon successful login.
+ */
 function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [message, setMessage] = useState(''); // For displaying login messages
-  const navigate = useNavigate(); // For programmatic navigation
+  const [username, setUsername] = useState(''); // State for the username input field
+  const [password, setPassword] = useState(''); // State for the password input field
+  const [message, setMessage] = useState(''); // State for displaying login messages (e.g., success, error)
+
+  const navigate = useNavigate(); // Hook to programmatically change routes after login
+  const { login } = useAuth(); // Access the login function from AuthContext
 
   /**
-   * Handles the login form submission.
-   * Sends the username and password to the backend for authentication.
-   * On success, navigates to the NewPostPage.
+   * Handles the submission of the login form.
+   * This asynchronous function prevents the default form submission (page reload),
+   * sends authentication data to the backend, and processes the API response.
+   * Based on the response, it updates the authentication state and navigates the user.
+   * @param {Event} e - The form submission event object.
    */
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    setMessage(''); // Clear any previous messages
+    e.preventDefault(); // Prevent the browser from performing a full page reload
+    setMessage(''); // Clear any previous login messages
+
+    // Prepare the login data object to be sent as JSON to the backend
+    const loginData = {
+      username: username,
+      password: password,
+    };
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
-        method: 'POST',
+      // Send a POST request to the backend's login API endpoint
+      // NOTE: In a production environment, this URL MUST be HTTPS for security.
+      const response = await fetch('/api/login', {
+        method: 'POST', // Use the POST HTTP method for login
         headers: {
-          'Content-Type': 'application/json', // Indicate JSON payload
+          'Content-Type': 'application/json', // Inform the server that the request body is JSON
         },
-        body: JSON.stringify({ username, password }), // Send username and password as JSON
+        body: JSON.stringify(loginData), // Convert the JavaScript object to a JSON string
       });
 
-      // Check if the response status is 200 OK (or 202 Accepted if backend truly uses it)
-      // For a successful login, 200 OK is the standard.
-      if (response.ok) { // response.ok checks for status in the 200-299 range
-        const data = await response.json();
-        setMessage(data.message || 'Login successful!');
-        // In a real application, you would save an authentication token (e.g., JWT) here.
-        // For example: localStorage.setItem('authToken', data.token);
+      // Check if the HTTP response indicates success (status code in the 200-299 range).
+      // Standard for successful login is 200 OK.
+      // If your backend specifically returns 202 Accepted for login, adjust 'response.ok' to 'response.status === 202'.
+      if (response.ok) {
+        const data = await response.json(); // Parse the JSON response from the backend
+        setMessage(data.message || 'Login successful!'); // Display the success message
 
-        // Redirect to the NewPostPage upon successful login
+        // Call the login function from AuthContext to update the global authentication state.
+        // In a real app, 'data.token' (if backend provides a JWT) would be passed here.
+        login('some_auth_token_from_backend'); // Placeholder token; replace with actual token if applicable
+        localStorage.setItem('authToken', 'true'); // Temporarily using this for AuthProvider check
+
+        // Redirect the user to the NewPostPage after successful login
         navigate('/new-post');
       } else {
-        // If login failed, parse the error message from the backend
+        // If login failed, parse the error details from the backend response
         const errorData = await response.json();
-        setMessage(`Login failed: ${errorData.message || response.statusText}`);
+        setMessage(`Login failed: ${errorData.message || response.statusText}`); // Display the error message
       }
     } catch (error) {
-      // Handle network errors (e.g., backend server not running)
+      // Catch any network-related errors (e.g., server not reachable, no internet)
       setMessage(`Network error: ${error.message}. Please check if the backend server is running.`);
-      console.error('Login fetch error:', error);
+      console.error('Login fetch error:', error); // Log the full error details for debugging
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="username" style={{ display: 'block', marginBottom: '5px' }}>Username:</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-        </div>
-        <button type="submit" style={{ backgroundColor: '#007bff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-          Log In
-        </button>
-      </form>
-      {message && <p style={{ marginTop: '20px', padding: '10px', backgroundColor: '#e9ecef', borderRadius: '5px' }}>{message}</p>}
-    </div>
+    // Fragment to hold both the Header and the main content div
+    <>
+      <Header /> {/* ★★★ Render the Header component here ★★★ */}
+      {/* Main container for the login form with basic styling for centering and padding.
+          Added paddingTop to account for the fixed header. */}
+      <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px', paddingTop: '80px' }}>
+        <h1>Login</h1>
+        <form onSubmit={handleSubmit}>
+          {/* Username input group */}
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="username" style={{ display: 'block', marginBottom: '5px' }}>Username:</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)} // Update username state on input change
+              required // HTML5 validation: this field is required
+              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} // Full width, padding, border-box sizing
+            />
+          </div>
+          {/* Password input group */}
+          <div style={{ marginBottom: '15px' }}>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Password:</label>
+            <input
+              type="password" // Input type 'password' masks the characters
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)} // Update password state on input change
+              required
+              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+            />
+          </div>
+          {/* Submit button */}
+          <button type="submit" style={{
+            backgroundColor: '#007bff', // Blue background
+            color: 'white',            // White text
+            padding: '10px 20px',      // Padding
+            border: 'none',            // No border
+            borderRadius: '5px',       // Rounded corners
+            cursor: 'pointer',         // Hand cursor on hover
+          }}>
+            Log In
+          </button>
+        </form>
+        {/* Display login messages if present */}
+        {message && (
+          <p style={{ marginTop: '20px', padding: '10px', backgroundColor: '#e9ecef', borderRadius: '5px' }}>
+            {message}
+          </p>
+        )}
+      </div>
+    </>
   );
 }
 
+// Export the LoginPage component as the default export of this file.
+// This allows other files (like App.js) to import it easily using:
+// `import LoginPage from './pages/LoginPage';` (without curly braces).
 export default LoginPage;

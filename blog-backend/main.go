@@ -29,11 +29,10 @@ func main() {
 	        // Apply CORS middleware first
 	        r.Use(cors.Handler(cors.Options{
 	        	// Allow all origins for development (you can narrow this down for production)
-                AllowedOrigins: []string{"http://localhost:3000", "http://127.0.0.1:3000"}, // Add 127.0.0.1 if your browser uses it sometimes
+				AllowedOrigins: []string{"http://localhost:3000", "http://127.0.0.1:3000", "http://blog.yoonjin2.kr", "https://blog.yoonjin2.kr"}, // Add 127.0.0.1 if your browser uses it sometimes
 	        	// AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Keep these methods
                 AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-                // Allow all headers during development (can be narrowed for production)
-	        	AllowedHeaders:   []string{"*"}, // Allow all headers. This is often the culprit for "expected pattern"
+			    AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
                 // Expose specific headers if your frontend needs to read them
 	        	ExposedHeaders:   []string{"Link"},
                 // Allow sending cookies/auth headers with requests
@@ -54,6 +53,8 @@ func main() {
             r.Post("/api/login", handlers.LoginHandler)
 
 	        log.Printf("Server started on port :8080...")
+            database.InitDatabase()
+			log.Println("Databsase loaded.")
 	        http.ListenAndServe(":8080", r)
         },
     }

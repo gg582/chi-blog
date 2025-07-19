@@ -11,7 +11,7 @@ function ContactPage() {
     const fetchContactContent = async () => {
       try {
         // Fetch content from the /api/contact endpoint
-        const response = await fetch('http://localhost:8080/api/contact');
+        const response = await fetch('/api/contact');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
