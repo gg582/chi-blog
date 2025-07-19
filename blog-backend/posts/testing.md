@@ -1,7 +1,0 @@
----
-author: test
----
-
-# testing
-
-test

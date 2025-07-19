@@ -69,7 +69,7 @@ function NewPostPage() {
       return;
     }
 
-    const backendUrl = `http://localhost:8080/api/new-post/${encodeURIComponent(postSlug)}`;
+    const backendUrl = `https://hobbies.yoonjin2.kr:8080/api/new-post/${encodeURIComponent(postSlug)}`;
 
     const postData = { title, author, content };
 

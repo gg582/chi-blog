@@ -11,7 +11,7 @@ function AboutPage() {
     const fetchAboutContent = async () => {
       try {
         // Fetch content from the /api/about endpoint
-        const response = await fetch('http://localhost:8080/api/about');
+        const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/about');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
