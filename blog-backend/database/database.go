@@ -10,7 +10,7 @@ var DB *sql.DB
 
 func InitDatabase() {
     var err error
-    DB, err = sql.Open("sqlite3", "./auth.db")
+    DB, err = sql.Open("sqlite3", "/opt/chi-blog/blog-backend/auth.db")
     if err != nil {
         log.Fatalf("Failed to open database: %v", err)
     }

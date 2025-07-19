@@ -61,7 +61,7 @@ function AppContent() {
  */
 function App() {
   return (
-    <Router>
+    <Router basename="/linuxblog">
       {/* AuthProvider wraps the AppContent to make authentication state available globally */}
       <AuthProvider>
         <AppContent />

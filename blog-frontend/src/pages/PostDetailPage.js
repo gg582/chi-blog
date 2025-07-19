@@ -13,7 +13,7 @@ function PostDetailPage() {
     const fetchPost = async () => {
       try {
         // Fetch a single post from your Go Chi backend using its ID
-        const response = await fetch(`/api/posts/${id}`);
+        const response = await fetch(`http://hobbies.yoonjin2.kr:8080/api/posts/${id}`);
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error('Post not found.');

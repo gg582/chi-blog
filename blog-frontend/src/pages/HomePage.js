@@ -13,7 +13,7 @@ function HomePage() {
     const fetchPosts = async () => {
       try {
         // Fetch data from your Go Chi backend
-        const response = await fetch('/api/posts');
+        const response = await fetch('http://hobbies.yoonjin2.kr:8080/api/posts');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
