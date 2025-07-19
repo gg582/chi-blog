@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/linuxblog/static/css/main.8915ec16.css",
-    "main.js": "/linuxblog/static/js/main.97ccc7dc.js",
-    "index.html": "/linuxblog/index.html",
-    "main.8915ec16.css.map": "/linuxblog/static/css/main.8915ec16.css.map",
-    "main.97ccc7dc.js.map": "/linuxblog/static/js/main.97ccc7dc.js.map"
+    "main.css": "/chi-blog/static/css/main.8915ec16.css",
+    "main.js": "/chi-blog/static/js/main.97ccc7dc.js",
+    "index.html": "/chi-blog/index.html",
+    "main.8915ec16.css.map": "/chi-blog/static/css/main.8915ec16.css.map",
+    "main.97ccc7dc.js.map": "/chi-blog/static/js/main.97ccc7dc.js.map"
   },
   "entrypoints": [
     "static/css/main.8915ec16.css",
