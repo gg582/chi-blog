@@ -40,7 +40,7 @@ function LoginPage() {
     try {
       // Send a POST request to the backend's login API endpoint
       // NOTE: In a production environment, this URL MUST be HTTPS for security.
-      const response = await fetch('http://hobbies.yoonjin2.kr:8080/api/login', {
+      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/login', {
         method: 'POST', // Use the POST HTTP method for login
         headers: {
           'Content-Type': 'application/json', // Inform the server that the request body is JSON
