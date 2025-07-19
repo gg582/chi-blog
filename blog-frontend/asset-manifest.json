@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/chi-blog/static/css/main.8915ec16.css",
+    "main.js": "/chi-blog/static/js/main.cf1e72e0.js",
+    "index.html": "/chi-blog/index.html",
+    "main.8915ec16.css.map": "/chi-blog/static/css/main.8915ec16.css.map",
+    "main.cf1e72e0.js.map": "/chi-blog/static/js/main.cf1e72e0.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8915ec16.css",
+    "static/js/main.cf1e72e0.js"
+  ]
+}
