@@ -30,7 +30,7 @@ func main() {
 			r.Use(cors.Handler(cors.Options{
 				// AllowedOrigins: Specify the frontend origins allowed to make requests.
 				// For GitHub Pages, it must be HTTPS. Include http://localhost for local development.
-                AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://gg582.yoonjin2.kr", "http://gg582.yoonjin2.kr"},
+                AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://gg582.github.io", "http://gg582.github.io"},
 				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 				// Expose specific headers if your frontend needs to read them
