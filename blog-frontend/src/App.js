@@ -61,7 +61,7 @@ function AppContent() {
  */
 function App() {
   return (
-    <Router basename="/chi-blog">
+    <Router>
       {/* AuthProvider wraps the AppContent to make authentication state available globally */}
       <AuthProvider>
         <AppContent />
