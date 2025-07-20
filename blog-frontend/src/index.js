@@ -13,7 +13,7 @@ root.render(
   <React.StrictMode>
     {/* Use BrowserRouter for clean URLs, with basename for GitHub Pages sub-directory */}
     {/* The basename should match your GitHub Pages repository name (e.g., /your-repo-name) */}
-    <BrowserRouter basename="/chi-blog">
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>
