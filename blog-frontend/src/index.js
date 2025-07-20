@@ -1,8 +1,9 @@
 // ~/chi-blog/blog-frontend/src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Import HashRouter instead of BrowserRouter
-import { HashRouter } from 'react-router-dom';
+// Import BrowserRouter for client-side routing
+// BrowserRouter requires a 'basename' prop when hosted in a sub-directory on GitHub Pages
+import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -10,11 +11,11 @@ import reportWebVitals from './reportWebVitals';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    {/* Use HashRouter for GitHub Pages compatibility */}
-    {/* HashRouter does not require 'basename' as it uses URL hashes */}
-    <HashRouter>
+    {/* Use BrowserRouter for clean URLs, with basename for GitHub Pages sub-directory */}
+    {/* The basename should match your GitHub Pages repository name (e.g., /your-repo-name) */}
+    <BrowserRouter basename="/chi-blog">
       <App />
-    </HashRouter>
+    </BrowserRouter>
   </React.StrictMode>
 );
 
