@@ -61,12 +61,9 @@ function AppContent() {
  */
 function App() {
   return (
-    <Router>
-      {/* AuthProvider wraps the AppContent to make authentication state available globally */}
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
