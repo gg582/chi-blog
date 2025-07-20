@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // Hook to access URL parameters
-import Header from '../components/Header'; // Re-use the Header component
-import './PostDetailPage.css'; // Styling for the post detail page
+import { useParams } from 'react-router-dom';
+import Header from '../components/Header';
+import './PostDetailPage.css'; // Ensure Monokai theme CSS is imported here or in a global CSS file
+
+import hljs from 'highlight.js'; // Import highlight.js library
 
 function PostDetailPage() {
-  const { id } = useParams(); // Get the 'id' from the URL (e.g., /posts/my-post-id)
+  const { id } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Effect hook to fetch the post data
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -31,6 +34,19 @@ function PostDetailPage() {
 
     fetchPost();
   }, [id]); // Re-run effect if the 'id' parameter in the URL changes
+
+  // --- START: New useEffect hook for highlight.js application ---
+  // This hook runs after the component renders and 'post' data is available.
+  useEffect(() => {
+    // Check if post data and its HTML content are loaded
+    if (post && post.contentHtml) {
+      // highlight.js will find all <pre><code> blocks within the rendered HTML.
+      // It automatically detects the language if no 'language-xyz' class is present,
+      // or uses the specified class if it exists (e.g., from Blackfriday's output).
+      hljs.highlightAll();
+    }
+  }, [post]); // Re-run this effect whenever the 'post' data changes (i.e., when a new post is loaded)
+  // --- END: New useEffect hook for highlight.js application ---
 
   if (loading) {
     return (
@@ -72,7 +88,8 @@ function PostDetailPage() {
         <p className="post-detail-meta">
           Author: {post.author} | Date: {new Date(post.createdAt).toLocaleDateString()}
         </p>
-        {/* Render the full HTML content of the post */}
+        {/* Render the full HTML content of the post. */}
+        {/* highlight.js will process the <pre><code> tags inside this div for highlighting. */}
         <div className="post-detail-content" dangerouslySetInnerHTML={{ __html: post.contentHtml }}></div>
       </main>
     </div>
