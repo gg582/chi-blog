@@ -29,7 +29,7 @@ function Header() {
       justifyContent: 'space-between',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)' // Optional: add a subtle shadow
     }}>
-      <div style={{ fontWeight: 'bold' }}>My Blog</div>
+      <div style={{ fontWeight: 'bold' }}>Lee Yunjin&apos;s Open Source Blog</div>
       <nav>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex' }}>
           <li style={{ marginRight: '15px' }}><Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Home</Link></li>
