@@ -21,7 +21,7 @@ function Header() {
       zIndex: 1000,
       justifyContent: 'space-between',
     }}>
-      <div style={{ fontWeight: 'bold' }}>Lee Yunjin&apos;s Open Source Blog</div>
+      <div style={{ fontWeight: 'bold' }}>Linuxer&apos;s Blog</div>
       <nav>
         <Link to="/" style={navLinkStyle}>Home</Link>
         <Link to="/about" style={navLinkStyle}>About</Link>
