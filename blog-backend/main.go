@@ -62,6 +62,8 @@ func main() {
 			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) // this should not be accessible without proper login
             r.Post("/api/upload-image", handlers.UploadImage)
 			r.Post("/api/login", handlers.LoginHandler)
+            fileServer := http.FileServer(http.Dir("./posts/assets")) 
+        	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
 
 			log.Printf("Server starting on port :443 (HTTPS)...") // Log message changed to reflect HTTPS
 			database.InitDatabase()
