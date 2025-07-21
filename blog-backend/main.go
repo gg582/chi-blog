@@ -16,7 +16,6 @@ import (
 
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
-	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +53,7 @@ func main() {
 
 
             handlers.ImageJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
-            workerpool/workerpool.NewWorkerPool(numWorkers. handlers.ImageJobQueue)
+            workerpool.NewWorkerPool(numWorkers, handlers.ImageJobQueue)
 			// Define your routes
 			r.Get("/api/posts", handlers.GetPostsHandler)
 			r.Get("/api/posts/{id}", handlers.GetPostByIDHandler)
