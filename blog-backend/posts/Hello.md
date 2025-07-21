@@ -1,7 +1,7 @@
---- author: Administrator ---
+--- author: Lee Yunjin ---
+# Hello! I am Lee Yunjin
 
-# 반갑습니다!
+## Overview
 
-## 개요
-
-이 블로그는 리눅스에 대한 소소한 포스트들을 다룹니다. 잘 부탁드립니다.
+I am interested in Linux Desktop, and sometimes Linux Gaming.
+I will introduce daily tips for using Linux.
