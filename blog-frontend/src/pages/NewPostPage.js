@@ -1,8 +1,50 @@
 // ~/chi-blog/blog-frontend/src/pages/NewPostPage.js
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header"; // Re-use the Header component
-import "./NewPostPage.css"; // Assume you have a CSS file for styling
+import { useNavigate, Link } from "react-router-dom"; // Link import added
+
+// Header component (unchanged)
+function Header() {
+  return (
+    <header
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: "60px",
+        backgroundColor: "#333",
+        color: "white",
+        display: "flex",
+        alignItems: "center",
+        padding: "0 20px",
+        fontSize: "1.1rem",
+        zIndex: 1000,
+        justifyContent: "space-between",
+      }}
+    >
+      <div style={{ fontWeight: "bold" }}>Linuxer&apos;s Blog</div>
+      <nav>
+        <Link to="/" style={navLinkStyle}>
+          Home
+        </Link>
+        <Link to="/about" style={navLinkStyle}>
+          About
+        </Link>
+        <Link to="/contact" style={navLinkStyle}>
+          Contact
+        </Link>
+      </nav>
+    </header>
+  );
+}
+
+const navLinkStyle = {
+  color: "white",
+  textDecoration: "none",
+  marginLeft: "20px",
+  fontWeight: "normal",
+};
 
 function NewPostPage() {
   const [title, setTitle] = useState("");
@@ -19,6 +61,15 @@ function NewPostPage() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState(""); // To store the URL of the uploaded image
   // --- End Image Upload States ---
 
+  // Create slug from title: lowercase, remove invalid characters, replace spaces with dashes
+  const createSlug = (inputTitle) => {
+    let slug = inputTitle.toLowerCase();
+    slug = slug.replace(/[^\p{L}\p{N}\s-]/gu, ""); // Keep letters, numbers, spaces, hyphens
+    slug = slug.replace(/[\s-]+/g, "-"); // Replace multiple spaces/hyphens with single hyphen
+    slug = slug.replace(/^-+|-+$/g, ""); // Trim hyphens from start/end
+    return slug || "untitled-post";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -30,22 +81,38 @@ function NewPostPage() {
       return;
     }
 
-    try {
-      const response = await fetch(
-        "https://hobbies.yoonjin2.kr:8080/api/posts",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Assuming you have an authentication token from AuthContext
-            // 'Authorization': `Bearer ${yourAuthToken}`
-          },
-          body: JSON.stringify({ title, content, author }),
-        },
+    const postSlug = createSlug(title);
+    if (!postSlug || postSlug === "untitled-post") {
+      setError(
+        "The title is too generic or contains only invalid characters. Please use a more descriptive title.",
       );
+      return;
+    }
+
+    // THIS IS THE LINE YOU WERE ASKING ABOUT!
+    // Re-introducing backendUrl with postSlug in the path, as per your original NewPostPage.js
+    const backendUrl = `https://hobbies.yoonjin2.kr:8080/api/new-post/${encodeURIComponent(postSlug)}`;
+
+    try {
+      const response = await fetch(backendUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Assuming you have an authentication token from AuthContext
+          // 'Authorization': `Bearer ${yourAuthToken}`
+        },
+        // Sending the actual post data in the body
+        body: JSON.stringify({ title, content, author }),
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Attempt to parse error message from backend
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorData.message}`,
+        );
       }
 
       const newPost = await response.json();
@@ -59,17 +126,17 @@ function NewPostPage() {
 
       // Optionally redirect to the new post's detail page or home
       setTimeout(() => {
-        navigate(`/posts/${newPost.id}`); // Assuming newPost has an 'id' field
+        navigate(`/posts/${newPost.id}`); // Assuming newPost has an 'id' field returned from backend
       }, 1500);
     } catch (e) {
       setError(e.message);
     }
   };
 
-  // --- Image Upload Handlers ---
+  // --- Image Upload Handlers (unchanged, as it's separate functionality) ---
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
-    setUploadError(null); // Clear previous errors
+    setUploadError(null);
   };
 
   const handleImageUpload = async () => {
@@ -82,15 +149,14 @@ function NewPostPage() {
     setUploadError(null);
 
     const formData = new FormData();
-    formData.append("image", selectedFile); // 'image' should match the backend's expected form field name
+    formData.append("image", selectedFile);
 
     try {
       const response = await fetch(
         "https://hobbies.yoonjin2.kr:8080/api/upload-image",
         {
-          // <-- New Image Upload Endpoint
           method: "POST",
-          body: formData, // No 'Content-Type' header here, FormData sets it automatically
+          body: formData,
           // 'Authorization': `Bearer ${yourAuthToken}` // If image upload requires auth
         },
       );
@@ -103,13 +169,12 @@ function NewPostPage() {
       }
 
       const result = await response.json();
-      setUploadedImageUrl(result.url); // Assuming backend returns a JSON with a 'url' field
-      // Optionally insert into markdown content directly
+      setUploadedImageUrl(result.url);
       setContent(
         (prevContent) =>
           prevContent + `\n![Alt text for image](${result.url})\n`,
       );
-      setSelectedFile(null); // Clear selected file after successful upload
+      setSelectedFile(null);
     } catch (e) {
       setUploadError(e.message);
     } finally {
@@ -156,7 +221,7 @@ function NewPostPage() {
             <label>Image Upload:</label>
             <input type="file" accept="image/*" onChange={handleFileChange} />
             <button
-              type="button" // Use type="button" to prevent form submission
+              type="button"
               onClick={handleImageUpload}
               disabled={uploading || !selectedFile}
             >
