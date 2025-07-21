@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import Header from '../components/Header';
-import './PostDetailPage.css'; // Ensure Monokai theme CSS is imported here or in a global CSS file
+// ~/chi-blog/blog-frontend/src/pages/PostDetailPage.js
 
-import hljs from 'highlight.js'; // Import highlight.js library
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Header from "../components/Header";
+import "./PostDetailPage.css"; // Ensure Monokai theme CSS is imported here or in a global CSS file
+
+import hljs from "highlight.js"; // Import highlight.js library
 
 function PostDetailPage() {
   const { id } = useParams();
@@ -15,11 +17,20 @@ function PostDetailPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // Fetch a single post from your Go Chi backend using its ID
-        const response = await fetch(`https://hobbies.yoonjin2.kr:8080/api/posts/${id}`);
+        // Fetch a single post from your Go Chi backend using its ID via POST method
+        const response = await fetch(
+          `https://hobbies.yoonjin2.kr:8080/api/posts/${id}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json", // Required for POST requests with a body
+            },
+            body: JSON.stringify({}), // Send an empty JSON object as the body
+          },
+        );
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Post not found.');
+            throw new Error("Post not found.");
           }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -86,11 +97,15 @@ function PostDetailPage() {
       <Header /> {/* Header is rendered once */}
       <main className="container">
         <p className="post-detail-meta">
-          Author: {post.author} | Date: {new Date(post.createdAt).toLocaleDateString()}
+          Author: {post.author} | Date:{" "}
+          {new Date(post.createdAt).toLocaleDateString()}
         </p>
         {/* Render the full HTML content of the post. */}
         {/* highlight.js will process the <pre><code> tags inside this div for highlighting. */}
-        <div className="post-detail-content" dangerouslySetInnerHTML={{ __html: post.contentHtml }}></div>
+        <div
+          className="post-detail-content"
+          dangerouslySetInnerHTML={{ __html: post.contentHtml }}
+        ></div>
       </main>
     </div>
   );
