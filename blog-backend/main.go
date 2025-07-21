@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/gg582/chi-blog/blog-backend/database"
+	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors" // Ensure this is imported
@@ -16,6 +17,11 @@ import (
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
 	"github.com/spf13/cobra"
+)
+
+const (
+    numWorkers = 5
+    jobQueueSize = 48
 )
 
 func main() {
@@ -30,8 +36,9 @@ func main() {
 			r.Use(cors.Handler(cors.Options{
 				// AllowedOrigins: Specify the frontend origins allowed to make requests.
 				// For GitHub Pages, it must be HTTPS. Include http://localhost for local development.
-                AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://chi-blog-seven.vercel.app", "http://chi-blog-seven.vercel.app"},
-				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+                //AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://chi-blog-seven.vercel.app", "http://chi-blog-seven.vercel.app"},
+                AllowedOrigins: []string{"*"},
+  				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 				// Expose specific headers if your frontend needs to read them
 				ExposedHeaders:   []string{"Link"},
@@ -44,12 +51,16 @@ func main() {
 			r.Use(middleware.Logger)
 			r.Use(middleware.Recoverer)
 
+
+            handlers.ImageJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
+            workerpool.NewWorkerPool(numWorkers, handlers.ImageJobQueue)
 			// Define your routes
 			r.Get("/api/posts", handlers.GetPostsHandler)
 			r.Get("/api/posts/{id}", handlers.GetPostByIDHandler)
 			r.Get("/api/about", handlers.GetAboutPageHandler)
 			r.Get("/api/contact", handlers.GetContactPageHandler)
 			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) // this should not be accessible without proper login
+            r.Post("/api/upload-image", handlers.UploadImage)
 			r.Post("/api/login", handlers.LoginHandler)
 
 			log.Printf("Server starting on port :443 (HTTPS)...") // Log message changed to reflect HTTPS
