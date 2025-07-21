@@ -9,13 +9,20 @@ import (
 	"fmt"
 
 	"github.com/gg582/chi-blog/blog-backend/database"
+	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors" // Ensure this is imported
 
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
+	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/spf13/cobra"
+)
+
+const (
+    numWorkers = 5
+    jobQueueSize = 48
 )
 
 func main() {
@@ -45,6 +52,9 @@ func main() {
 			r.Use(middleware.Logger)
 			r.Use(middleware.Recoverer)
 
+
+            handlers.ImageJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
+            workerpool/workerpool.NewWorkerPool(numWorkers. handlers.ImageJobQueue)
 			// Define your routes
 			r.Get("/api/posts", handlers.GetPostsHandler)
 			r.Get("/api/posts/{id}", handlers.GetPostByIDHandler)
