@@ -30,7 +30,8 @@ func main() {
 			r.Use(cors.Handler(cors.Options{
 				// AllowedOrigins: Specify the frontend origins allowed to make requests.
 				// For GitHub Pages, it must be HTTPS. Include http://localhost for local development.
-                AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://chi-blog-seven.vercel.app", "http://chi-blog-seven.vercel.app"},
+                //AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://chi-blog-seven.vercel.app", "http://chi-blog-seven.vercel.app"},
+                AllowedOrigins: []string{"*"},
 				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 				// Expose specific headers if your frontend needs to read them
@@ -50,6 +51,7 @@ func main() {
 			r.Get("/api/about", handlers.GetAboutPageHandler)
 			r.Get("/api/contact", handlers.GetContactPageHandler)
 			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) // this should not be accessible without proper login
+            r.Post("/api/upload-image", handlers.UploadImage)
 			r.Post("/api/login", handlers.LoginHandler)
 
 			log.Printf("Server starting on port :443 (HTTPS)...") // Log message changed to reflect HTTPS
