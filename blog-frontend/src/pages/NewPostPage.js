@@ -34,7 +34,7 @@ function NewPostPage() {
       const response = await fetch(
         "https://hobbies.yoonjin2.kr:8080/api/posts",
         {
-          method: "GET",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             // Assuming you have an authentication token from AuthContext
