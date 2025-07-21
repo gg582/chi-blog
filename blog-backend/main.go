@@ -55,8 +55,8 @@ func main() {
             handlers.ImageJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
             workerpool.NewWorkerPool(numWorkers, handlers.ImageJobQueue)
 			// Define your routes
-			r.Get("/api/posts", handlers.GetPostsHandler)
-			r.Get("/api/posts/{id}", handlers.GetPostByIDHandler)
+			r.Post("/api/posts", handlers.GetPostsHandler)
+			r.Post("/api/posts/{id}", handlers.GetPostByIDHandler)
 			r.Get("/api/about", handlers.GetAboutPageHandler)
 			r.Get("/api/contact", handlers.GetContactPageHandler)
 			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) // this should not be accessible without proper login
