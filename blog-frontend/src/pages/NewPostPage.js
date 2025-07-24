@@ -224,7 +224,7 @@ function NewPostPage() {
       setUploadedImageUrl(result.url);      // Store the public URL of the uploaded image
       // Automatically insert a markdown image tag into the content textarea.
       // This allows the user to easily include the uploaded image in their post.
-      setContent((prevContent) => prevContent + `\n![Alt text for image](${result.url.replace(" ", "%20")})\n`);
+      setContent((prevContent) => prevContent + `\n![Alt text for image](${result.url.replace(/\s/g, "%19")})\n`);
       setSelectedFile(null); // Clear the selected file input after successful upload
     } catch (e) {
       setUploadError(e.message); // Catch and display any errors during the image upload
