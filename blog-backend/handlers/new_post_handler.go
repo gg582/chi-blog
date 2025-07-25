@@ -65,17 +65,18 @@ func CreateNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	filename := postSlug + ".md"
 	filePath := filepath.Join(postsDir, filename)
 
-	// Check if a file with this slug already exists to prevent overwriting
-	if _, err := os.Stat(filePath); err == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict) // 409 Conflict if resource already exists
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": fmt.Sprintf("A post with the ID '%s' (from title: '%s') already exists.", postSlug, newPost.Title),
-			"code":    "DUPLICATE_SLUG",
-			"slug":    postSlug,
-		})
-		return
-	}
+    // JUST OVERWRITE IT
+	// // Check if a file with this slug already exists to prevent overwriting
+	// if _, err := os.Stat(filePath); err == nil {
+	// 	w.Header().Set("Content-Type", "application/json")
+	// 	w.WriteHeader(http.StatusConflict) // 409 Conflict if resource already exists
+	// 	json.NewEncoder(w).Encode(map[string]string{
+	// 		"message": fmt.Sprintf("A post with the ID '%s' (from title: '%s') already exists.", postSlug, newPost.Title),
+	// 		"code":    "DUPLICATE_SLUG",
+	// 		"slug":    postSlug,
+	// 	})
+	// 	return
+	// }
 
 	// Prepare the content to be written to the markdown file
 	// Include the author as front matter. You might also want to include the original title here.
