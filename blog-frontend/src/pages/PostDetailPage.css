@@ -2,8 +2,6 @@
 
 /* Import the Monokai theme from highlight.js */
 
-@import "~highlight.js/styles/github.css";
-
 .post-detail-page {
     /* Add any page-specific layout if needed */
 }
