@@ -65,7 +65,7 @@ func main() {
             fileServer := http.FileServer(http.Dir("./posts/assets")) 
         	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
 
-			log.Printf("Server starting on port :443 (HTTPS)...") // Log message changed to reflect HTTPS
+			log.Printf("Server starting on port :8080 (HTTPS)...") // Log message changed to reflect HTTPS
 			database.InitDatabase()
 			log.Println("Database loaded.")
 
