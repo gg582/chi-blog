@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
-import "./PostDetailPage.css"; // Ensure Monokai theme CSS is imported here or in a global CSS file
+import "./PostDetailPage.css";
 
-import hljs from "highlight.js"; // Import highlight.js library
+// No need to import hljs here; it's loaded via CDN in public/index.html.
+// No need to import desktopLanguageDefinition; it's bundled in the CDN's highlight.min.js.
 
 function PostDetailPage() {
   const { id } = useParams();
@@ -13,59 +14,58 @@ function PostDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Effect hook to fetch the post data
+  // Effect hook: Fetches post data from the backend.
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // Fetch a single post from your Go Chi backend using its ID via POST method
         const response = await fetch(
           `https://hobbies.yoonjin2.kr:8080/api/posts/${id}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json", // Required for POST requests with a body
-            },
-            body: JSON.stringify({}), // Send an empty JSON object as the body
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
           },
         );
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error("Post not found.");
-          }
+          if (response.status === 404) { throw new Error("Post not found."); }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setPost(data); // Set the fetched post data
+        setPost(data);
       } catch (e) {
-        setError(e); // Handle errors
+        setError(e);
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
-
     fetchPost();
-  }, [id]); // Re-run effect if the 'id' parameter in the URL changes
+  }, [id]);
 
-  // --- START: New useEffect hook for highlight.js application ---
-  // This hook runs after the component renders and 'post' data is available.
+  // Effect hook: Applies Highlight.js after post HTML content is rendered.
   useEffect(() => {
-    // Check if post data and its HTML content are loaded
-    if (post && post.contentHtml) {
-      // highlight.js will find all <pre><code> blocks within the rendered HTML.
-      // It automatically detects the language if no 'language-xyz' class is present,
-      // or uses the specified class if it exists (e.g., from Blackfriday's output).
-      hljs.highlightAll();
+    if (window.hljs) { // Check if window.hljs is available.
+      // The 'desktop' language is already bundled in the CDN's highlight.min.js,
+      // so explicit registration here is not needed.
+
+      if (post && post.contentHtml) {
+        // Highlight code blocks within the specific post content div.
+        const postContentElement = document.querySelector('.post-detail-content');
+        if (postContentElement) {
+            postContentElement.querySelectorAll('pre code').forEach((block) => {
+                if (!block.classList.contains('hljs')) { // Prevent re-highlighting already processed blocks.
+                    window.hljs.highlightElement(block);
+                }
+            });
+        }
+      }
     }
-  }, [post]); // Re-run this effect whenever the 'post' data changes (i.e., when a new post is loaded)
-  // --- END: New useEffect hook for highlight.js application ---
+  }, [post]);
 
   if (loading) {
     return (
       <div className="post-detail-page">
         <Header />
-        <main className="container">
-          <p>Loading post...</p>
-        </main>
+        <main className="container"> <p>Loading post...</p> </main>
       </div>
     );
   }
@@ -74,9 +74,7 @@ function PostDetailPage() {
     return (
       <div className="post-detail-page">
         <Header />
-        <main className="container">
-          <p>Error: {error.message}</p>
-        </main>
+        <main className="container"> <p>Error: {error.message}</p> </main>
       </div>
     );
   }
@@ -85,23 +83,20 @@ function PostDetailPage() {
     return (
       <div className="post-detail-page">
         <Header />
-        <main className="container">
-          <p>Post not found.</p>
-        </main>
+        <main className="container"> <p>Post not found.</p> </main>
       </div>
     );
   }
 
   return (
     <div className="post-detail-page">
-      <Header /> {/* Header is rendered once */}
+      <Header />
       <main className="container">
         <p className="post-detail-meta">
           Author: {post.author} | Date:{" "}
           {new Date(post.createdAt).toLocaleDateString()}
         </p>
-        {/* Render the full HTML content of the post. */}
-        {/* highlight.js will process the <pre><code> tags inside this div for highlighting. */}
+        {/* Renders post HTML content. Highlight.js will process code tags inside. */}
         <div
           className="post-detail-content"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}
