@@ -1,0 +1,18 @@
+[Unit]
+Description=Chi-blog service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/chi-blog/blog-backend/blog-backend
+WorkingDirectory=/opt/chi-blog/blog-backend/
+ExecReload=kill -HUP $MAINPID
+ExecStop=kill $MAINPID
+StandardOutput=append:/opt/chi-blog/server.log
+StandardError=append:/opt/chi-blog/error.log
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
