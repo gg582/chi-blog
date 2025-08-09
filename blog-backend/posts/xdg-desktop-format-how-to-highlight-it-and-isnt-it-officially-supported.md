@@ -2,7 +2,7 @@
 author: Lee Yunjin
 ---
 
-# XDG Desktop format: How to Highlight it - and isn't it officially supported?
+# XDG Desktop format: How to Highlight it - and isn’t it officially supported?
 
 ## What is XDG Desktop format?
 As a Desktop Linux(or \*BSD) user, you are undoubtedly familiar with XDG Desktop shortcuts.
@@ -37,6 +37,8 @@ Let us compare by two examples.
 
 #### With desktop tag inside Markdown
 
+I coded a custom highlighter for this format, so you can see some colors.
+But, it is originally unsupported.
 ```desktop
 [Desktop Entry]
 Name=The text is NOT highlighted
@@ -44,7 +46,7 @@ Exec=/usr/bin/myapp
 Type=Application
 Terminal=False
 Icon=application-x-executable
-Comment=You don't see colors here, right?
+Comment=Originally it does not support highlighting
 StartupNotify=false
 ```
 
