@@ -61,6 +61,10 @@ const getMimeType = (fileName, category) => {
     return 'application/octet-stream'; 
 };
 
+// --- API Endpoint Definition ---
+const UPLOAD_ENDPOINT = 'https://hobbies.yoonjin2.kr:8080/api/upload-file';
+
+
 function NewPostPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -69,10 +73,10 @@ function NewPostPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // Image Upload State
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState(null);
+  // Image Upload State (uses general states for simplicity)
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadImageError, setUploadImageError] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
   // Video Upload State
@@ -81,13 +85,13 @@ function NewPostPage() {
   const [uploadVideoError, setUploadVideoError] = useState(null);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState('');
   
-  // Audio Upload State (New)
+  // Audio Upload State
   const [selectedAudioFile, setSelectedAudioFile] = useState(null);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [uploadAudioError, setUploadAudioError] = useState(null);
   const [uploadedAudioUrl, setUploadedAudioUrl] = useState('');
 
-  // General File Upload State (New)
+  // General File Upload State
   const [selectedGeneralFile, setSelectedGeneralFile] = useState(null);
   const [uploadingGeneral, setUploadingGeneral] = useState(false);
   const [uploadGeneralError, setUploadGeneralError] = useState(null);
@@ -152,7 +156,7 @@ function NewPostPage() {
 
       const newPost = await response.json();
       setSuccess(true);
-      setTitle(''); setContent(''); setAuthor(''); setUploadedImageUrl(''); setSelectedFile(null); setPreviewHtml('');
+      setTitle(''); setContent(''); setAuthor(''); setUploadedImageUrl(''); setSelectedImageFile(null); setPreviewHtml('');
       setTimeout(() => { navigate(`/posts/${newPost.id}`); }, 1500);
     } catch (e) {
       setError(e.message);
@@ -160,9 +164,9 @@ function NewPostPage() {
   };
 
   // --- File Change Handlers ---
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-    setUploadError(null);
+  const handleImageFileChange = (e) => {
+    setSelectedImageFile(e.target.files[0]);
+    setUploadImageError(null);
   };
 
   const handleVideoFileChange = (e) => {
@@ -180,21 +184,25 @@ function NewPostPage() {
     setUploadGeneralError(null);
   };
 
-  // --- Upload Handlers ---
-  const handleImageUpload = async () => {
-    if (!selectedFile) {
-      setUploadError('Please select a file to upload.');
-      return;
+  // --- Unified Upload Function ---
+  const handleUpload = async (file, setUploading, setUploadError, fileType) => {
+    if (!file) {
+        setUploadError(`Please select a ${fileType} file to upload.`);
+        return;
     }
 
     setUploading(true);
     setUploadError(null);
 
     const formData = new FormData();
-    formData.append('image', selectedFile);
+    // Use a generic key like 'file' and let the backend determine the type.
+    formData.append('file', file); 
+    
+    // Also send file type hint to the backend (optional, but helpful for routing/validation)
+    formData.append('fileTypeHint', fileType); 
 
     try {
-      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-image', {
+      const response = await fetch(UPLOAD_ENDPOINT, {
         method: 'POST',
         body: formData,
       });
@@ -205,135 +213,43 @@ function NewPostPage() {
       }
 
       const result = await response.json();
-      setUploadedImageUrl(result.url);
-      setContent((prevContent) => prevContent + `\n![Alt text for image](${result.url.replace(/\s/g, "%20")})\n`);
-      setSelectedFile(null);
+      const uploadedUrl = result.url;
+
+      // Handle content insertion based on file type
+      const url = uploadedUrl.replace(/\s/g, "%20");
+      let markdownSnippet = '';
+      
+      if (fileType === 'image') {
+        markdownSnippet = `\n![Alt text for image](${url})\n`;
+        setUploadedImageUrl(uploadedUrl);
+      } else if (fileType === 'video') {
+        const mimeType = getMimeType(file.name, 'video');
+        markdownSnippet = `\n<video controls width="600">\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the video tag.\n</video>\n`;
+        setUploadedVideoUrl(uploadedUrl);
+      } else if (fileType === 'audio') {
+        const mimeType = getMimeType(file.name, 'audio');
+        markdownSnippet = `\n<audio controls>\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the audio tag.\n</audio>\n`;
+        setUploadedAudioUrl(uploadedUrl);
+      } else if (fileType === 'general') {
+        const fileName = file.name;
+        markdownSnippet = `\n[Download File: ${fileName}](${url})\n`;
+        setUploadedGeneralUrl(uploadedUrl);
+      }
+
+      setContent((prevContent) => prevContent + markdownSnippet);
+      
     } catch (e) {
       setUploadError(e.message);
     } finally {
       setUploading(false);
+      // Clear the selected file input after processing (manual clear needed for different inputs)
+      if (fileType === 'image') setSelectedImageFile(null);
+      if (fileType === 'video') setSelectedVideoFile(null);
+      if (fileType === 'audio') setSelectedAudioFile(null);
+      if (fileType === 'general') setSelectedGeneralFile(null);
+      // Reset the file input element itself (if needed, but state reset usually suffices for React)
     }
   };
-
-  const handleVideoUpload = async () => {
-    if (!selectedVideoFile) {
-      setUploadVideoError('Please select a video file to upload.');
-      return;
-    }
-
-    setUploadingVideo(true);
-    setUploadVideoError(null);
-
-    const formData = new FormData();
-    formData.append('video', selectedVideoFile);
-
-    try {
-      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-video', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Video upload failed! Status: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      setUploadedVideoUrl(result.url);
-      
-      const mimeType = getMimeType(selectedVideoFile.name, 'video');
-      
-      const videoMarkdown = `\n<video controls width="600">\n  <source src="${result.url.replace(/\s/g, "%20")}" type="${mimeType}">\n  Your browser does not support the video tag.\n</video>\n`;
-      
-      setContent((prevContent) => prevContent + videoMarkdown);
-      setSelectedVideoFile(null);
-    } catch (e) {
-      setUploadVideoError(e.message);
-    } finally {
-      setUploadingVideo(false);
-    }
-  };
-  
-  const handleAudioUpload = async () => {
-    if (!selectedAudioFile) {
-      setUploadAudioError('Please select an audio file to upload.');
-      return;
-    }
-
-    setUploadingAudio(true);
-    setUploadAudioError(null);
-
-    const formData = new FormData();
-    formData.append('audio', selectedAudioFile);
-
-    try {
-      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-audio', { // Assumed endpoint
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Audio upload failed! Status: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      setUploadedAudioUrl(result.url);
-      
-      const mimeType = getMimeType(selectedAudioFile.name, 'audio');
-      
-      // Insert <audio> tag with source
-      const audioMarkdown = `\n<audio controls>\n  <source src="${result.url.replace(/\s/g, "%20")}" type="${mimeType}">\n  Your browser does not support the audio tag.\n</audio>\n`;
-      
-      setContent((prevContent) => prevContent + audioMarkdown);
-      setSelectedAudioFile(null);
-    } catch (e) {
-      setUploadAudioError(e.message);
-    } finally {
-      setUploadingAudio(false);
-    }
-  };
-
-  const handleGeneralFileUpload = async () => {
-    if (!selectedGeneralFile) {
-      setUploadGeneralError('Please select a file to upload.');
-      return;
-    }
-
-    setUploadingGeneral(true);
-    setUploadGeneralError(null);
-
-    const formData = new FormData();
-    formData.append('file', selectedGeneralFile);
-
-    try {
-      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-file', { // Assumed endpoint
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`File upload failed! Status: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
-      setUploadedGeneralUrl(result.url);
-      
-      const fileName = selectedGeneralFile.name;
-      
-      // Insert Markdown link for download
-      const fileMarkdown = `\n[Download File: ${fileName}](${result.url.replace(/\s/g, "%20")})\n`;
-      
-      setContent((prevContent) => prevContent + fileMarkdown);
-      setSelectedGeneralFile(null);
-    } catch (e) {
-      setUploadGeneralError(e.message);
-    } finally {
-      setUploadingGeneral(false);
-    }
-  };
-
 
   return (
     <>
@@ -357,11 +273,16 @@ function NewPostPage() {
           {/* Image Upload Section */}
           <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
             <label style={labelStyle}>Image Upload:</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} style={fileInputStyle} />
-            <button type="button" onClick={handleImageUpload} disabled={uploading || !selectedFile} style={buttonStyle}>
-              {uploading ? 'Uploading...' : 'Upload Image'}
+            <input type="file" accept="image/*" onChange={handleImageFileChange} style={fileInputStyle} />
+            <button 
+                type="button" 
+                onClick={() => handleUpload(selectedImageFile, setUploadingImage, setUploadImageError, 'image')} 
+                disabled={uploadingImage || !selectedImageFile} 
+                style={buttonStyle}
+            >
+              {uploadingImage ? 'Uploading...' : 'Upload Image'}
             </button>
-            {uploadError && <p style={errorMessageStyle}>{uploadError}</p>}
+            {uploadImageError && <p style={errorMessageStyle}>{uploadImageError}</p>}
             {uploadedImageUrl && (
               <p style={successMessageStyle}>
                 Image uploaded: <a href={uploadedImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedImageUrl}</a><br />
@@ -374,7 +295,12 @@ function NewPostPage() {
           <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
             <label style={labelStyle}>Video Upload:</label>
             <input type="file" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoFileChange} style={fileInputStyle} />
-            <button type="button" onClick={handleVideoUpload} disabled={uploadingVideo || !selectedVideoFile} style={buttonStyle}>
+            <button 
+                type="button" 
+                onClick={() => handleUpload(selectedVideoFile, setUploadingVideo, setUploadVideoError, 'video')} 
+                disabled={uploadingVideo || !selectedVideoFile} 
+                style={buttonStyle}
+            >
               {uploadingVideo ? 'Uploading...' : 'Upload Video'}
             </button>
             {uploadVideoError && <p style={errorMessageStyle}>{uploadVideoError}</p>}
@@ -386,11 +312,16 @@ function NewPostPage() {
             )}
           </div>
 
-          {/* Audio Upload Section (NEW) */}
+          {/* Audio Upload Section */}
           <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
             <label style={labelStyle}>Audio Upload:</label>
             <input type="file" accept="audio/mpeg,audio/wav,audio/ogg" onChange={handleAudioFileChange} style={fileInputStyle} />
-            <button type="button" onClick={handleAudioUpload} disabled={uploadingAudio || !selectedAudioFile} style={buttonStyle}>
+            <button 
+                type="button" 
+                onClick={() => handleUpload(selectedAudioFile, setUploadingAudio, setUploadAudioError, 'audio')} 
+                disabled={uploadingAudio || !selectedAudioFile} 
+                style={buttonStyle}
+            >
               {uploadingAudio ? 'Uploading...' : 'Upload Audio'}
             </button>
             {uploadAudioError && <p style={errorMessageStyle}>{uploadAudioError}</p>}
@@ -402,11 +333,16 @@ function NewPostPage() {
             )}
           </div>
           
-          {/* General File Upload Section (NEW) */}
+          {/* General File Upload Section */}
           <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
             <label style={labelStyle}>General File Upload (Download Link):</label>
             <input type="file" onChange={handleGeneralFileChange} style={fileInputStyle} />
-            <button type="button" onClick={handleGeneralFileUpload} disabled={uploadingGeneral || !selectedGeneralFile} style={buttonStyle}>
+            <button 
+                type="button" 
+                onClick={() => handleUpload(selectedGeneralFile, setUploadingGeneral, setUploadGeneralError, 'general')} 
+                disabled={uploadingGeneral || !selectedGeneralFile} 
+                style={buttonStyle}
+            >
               {uploadingGeneral ? 'Uploading...' : 'Upload File'}
             </button>
             {uploadGeneralError && <p style={errorMessageStyle}>{uploadGeneralError}</p>}
@@ -441,7 +377,11 @@ function NewPostPage() {
             />
           </div>
 
-          <button type="submit" disabled={uploading || uploadingVideo || uploadingAudio || uploadingGeneral} style={submitButtonStyle}>
+          <button 
+              type="submit" 
+              disabled={uploadingImage || uploadingVideo || uploadingAudio || uploadingGeneral} 
+              style={submitButtonStyle}
+          >
             Create Post
           </button>
         </form>
@@ -495,7 +435,6 @@ const successMessageStyle = {
   padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center',
   gridColumn: '1 / -1',
 };
-// Unified style for all upload sections
 const uploadSectionStyle = {
   display: 'flex', flexDirection: 'column', gap: '10px', padding: '15px',
   backgroundColor: '#f8f9fa', border: '1px dashed #ced4da', borderRadius: '5px',
