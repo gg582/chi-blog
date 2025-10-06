@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './NewPostPage.css';
 
@@ -47,18 +47,28 @@ const getMimeType = (fileName, category) => {
         if (extension === 'mp4') return 'video/mp4';
         if (extension === 'webm') return 'video/webm';
         if (extension === 'ogg') return 'video/ogg';
-        return `video/${extension}`; // Fallback
+        return `video/${extension}`;
     }
     
     if (category === 'audio') {
         if (extension === 'mp3') return 'audio/mpeg';
         if (extension === 'wav') return 'audio/wav';
         if (extension === 'ogg') return 'audio/ogg';
-        return `audio/${extension}`; // Fallback
+        return `audio/${extension}`;
     }
 
     // Default to application/octet-stream for general files
     return 'application/octet-stream'; 
+};
+
+// Function to determine file category based on MIME type hint
+const getFileCategory = (file) => {
+    if (!file || !file.type) return 'general';
+    const type = file.type.toLowerCase();
+    if (type.startsWith('image/')) return 'image';
+    if (type.startsWith('video/')) return 'video';
+    if (type.startsWith('audio/')) return 'audio';
+    return 'general';
 };
 
 // --- API Endpoint Definition ---
@@ -73,29 +83,11 @@ function NewPostPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
-  // Image Upload State (uses general states for simplicity)
-  const [selectedImageFile, setSelectedImageFile] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadImageError, setUploadImageError] = useState(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
-
-  // Video Upload State
-  const [selectedVideoFile, setSelectedVideoFile] = useState(null);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [uploadVideoError, setUploadVideoError] = useState(null);
-  const [uploadedVideoUrl, setUploadedVideoUrl] = useState('');
-  
-  // Audio Upload State
-  const [selectedAudioFile, setSelectedAudioFile] = useState(null);
-  const [uploadingAudio, setUploadingAudio] = useState(false);
-  const [uploadAudioError, setUploadAudioError] = useState(null);
-  const [uploadedAudioUrl, setUploadedAudioUrl] = useState('');
-
-  // General File Upload State
-  const [selectedGeneralFile, setSelectedGeneralFile] = useState(null);
-  const [uploadingGeneral, setUploadingGeneral] = useState(false);
-  const [uploadGeneralError, setUploadGeneralError] = useState(null);
-  const [uploadedGeneralUrl, setUploadedGeneralUrl] = useState('');
+  // State for batch file upload
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadedResults, setUploadedResults] = useState([]); // Array of {url, fileName}
 
   const [previewHtml, setPreviewHtml] = useState('');
 
@@ -156,38 +148,24 @@ function NewPostPage() {
 
       const newPost = await response.json();
       setSuccess(true);
-      setTitle(''); setContent(''); setAuthor(''); setUploadedImageUrl(''); setSelectedImageFile(null); setPreviewHtml('');
+      setTitle(''); setContent(''); setAuthor(''); setSelectedFiles([]); setUploadedResults([]); setPreviewHtml('');
       setTimeout(() => { navigate(`/posts/${newPost.id}`); }, 1500);
     } catch (e) {
       setError(e.message);
     }
   };
 
-  // --- File Change Handlers ---
-  const handleImageFileChange = (e) => {
-    setSelectedImageFile(e.target.files[0]);
-    setUploadImageError(null);
+  // --- Unified File Change Handler ---
+  const handleFileChange = (e) => {
+    // Convert FileList to Array
+    setSelectedFiles(Array.from(e.target.files));
+    setUploadError(null);
   };
 
-  const handleVideoFileChange = (e) => {
-    setSelectedVideoFile(e.target.files[0]);
-    setUploadVideoError(null);
-  };
-  
-  const handleAudioFileChange = (e) => {
-    setSelectedAudioFile(e.target.files[0]);
-    setUploadAudioError(null);
-  };
-
-  const handleGeneralFileChange = (e) => {
-    setSelectedGeneralFile(e.target.files[0]);
-    setUploadGeneralError(null);
-  };
-
-  // --- Unified Upload Function ---
-  const handleUpload = async (file, setUploading, setUploadError, fileType) => {
-    if (!file) {
-        setUploadError(`Please select a ${fileType} file to upload.`);
+  // --- Unified Batch Upload Function ---
+  const handleBatchUpload = async () => {
+    if (selectedFiles.length === 0) {
+        setUploadError('Please select at least one file to upload.');
         return;
     }
 
@@ -195,11 +173,10 @@ function NewPostPage() {
     setUploadError(null);
 
     const formData = new FormData();
-    // Use a generic key like 'file' and let the backend determine the type.
-    formData.append('file', file); 
-    
-    // Also send file type hint to the backend (optional, but helpful for routing/validation)
-    formData.append('fileTypeHint', fileType); 
+    selectedFiles.forEach((file) => {
+        // The backend expects a field named 'file' for each uploaded item
+        formData.append('file', file);
+    });
 
     try {
       const response = await fetch(UPLOAD_ENDPOINT, {
@@ -208,48 +185,60 @@ function NewPostPage() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed! Status: ${response.status} - ${errorText}`);
+        // Check for 202 Accepted which the backend might return on partial success
+        if (response.status === 202) {
+             setUploadError('Partial success: Some files failed to upload. Check the inserted content for details.');
+        } else {
+            const errorText = await response.text();
+            throw new Error(`Upload failed! Status: ${response.status} - ${errorText}`);
+        }
       }
 
-      const result = await response.json();
-      const uploadedUrl = result.url;
+      // The backend returns an array of successfully uploaded file objects: [{url, fileName}]
+      const results = await response.json();
+      setUploadedResults(results);
 
-      // Handle content insertion based on file type
-      const url = uploadedUrl.replace(/\s/g, "%20");
-      let markdownSnippet = '';
-      
-      if (fileType === 'image') {
-        markdownSnippet = `\n![Alt text for image](${url})\n`;
-        setUploadedImageUrl(uploadedUrl);
-      } else if (fileType === 'video') {
-        const mimeType = getMimeType(file.name, 'video');
-        markdownSnippet = `\n<video controls width="600">\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the video tag.\n</video>\n`;
-        setUploadedVideoUrl(uploadedUrl);
-      } else if (fileType === 'audio') {
-        const mimeType = getMimeType(file.name, 'audio');
-        markdownSnippet = `\n<audio controls>\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the audio tag.\n</audio>\n`;
-        setUploadedAudioUrl(uploadedUrl);
-      } else if (fileType === 'general') {
-        const fileName = file.name;
-        markdownSnippet = `\n[Download File: ${fileName}](${url})\n`;
-        setUploadedGeneralUrl(uploadedUrl);
-      }
+      let contentSnippets = [];
+      results.forEach((result) => {
+        // Use result.fileName to determine category (using original name as file object is gone)
+        const file = selectedFiles.find(f => f.name === result.fileName);
+        const fileType = getFileCategory(file);
 
-      setContent((prevContent) => prevContent + markdownSnippet);
+        // Safely encode the URL
+        const url = result.url.replace(/\s/g, "%20");
+        let markdownSnippet = '';
+        
+        // Generate the appropriate markdown/HTML snippet
+        if (fileType === 'image') {
+            markdownSnippet = `\n![${result.fileName}](${url})\n`;
+        } else if (fileType === 'video') {
+            const mimeType = getMimeType(result.fileName, 'video');
+            markdownSnippet = `\n<video controls width="600">\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the video tag.\n</video>\n`;
+        } else if (fileType === 'audio') {
+            const mimeType = getMimeType(result.fileName, 'audio');
+            markdownSnippet = `\n<audio controls>\n  <source src="${url}" type="${mimeType}">\n  Your browser does not support the audio tag.\n</audio>\n`;
+        } else { // 'general'
+            markdownSnippet = `\n[Download File: ${result.fileName}](${url})\n`;
+        }
+        contentSnippets.push(markdownSnippet);
+      });
+
+      // Append all snippets to the content area
+      setContent((prevContent) => prevContent + contentSnippets.join('\n'));
       
     } catch (e) {
       setUploadError(e.message);
     } finally {
       setUploading(false);
-      // Clear the selected file input after processing (manual clear needed for different inputs)
-      if (fileType === 'image') setSelectedImageFile(null);
-      if (fileType === 'video') setSelectedVideoFile(null);
-      if (fileType === 'audio') setSelectedAudioFile(null);
-      if (fileType === 'general') setSelectedGeneralFile(null);
-      // Reset the file input element itself (if needed, but state reset usually suffices for React)
+      setSelectedFiles([]); // Clear the selected file list
+      // Note: Clearing the file input element itself requires a ref or resetting its value property
+      document.getElementById('file-upload-input').value = '';
     }
   };
+
+  const totalFilesSelected = selectedFiles.length;
+  const isFormSubmittable = !uploading;
+
 
   return (
     <>
@@ -270,90 +259,47 @@ function NewPostPage() {
             <input type="text" id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required style={inputStyle} />
           </div>
 
-          {/* Image Upload Section */}
+          {/* Unified Batch File Upload Section */}
           <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
-            <label style={labelStyle}>Image Upload:</label>
-            <input type="file" accept="image/*" onChange={handleImageFileChange} style={fileInputStyle} />
+            <label style={labelStyle}>File Upload (Select Multiple Files):</label>
+            <input 
+                type="file" 
+                id="file-upload-input" 
+                multiple 
+                onChange={handleFileChange} 
+                style={fileInputStyle} 
+                accept="image/*,video/*,audio/*,.pdf,.zip,.tar.gz" // Suggest common files
+            />
+            {totalFilesSelected > 0 && (
+                <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#007bff' }}>
+                    **{totalFilesSelected} file(s) selected.** Click Upload to insert into content.
+                </p>
+            )}
             <button 
                 type="button" 
-                onClick={() => handleUpload(selectedImageFile, setUploadingImage, setUploadImageError, 'image')} 
-                disabled={uploadingImage || !selectedImageFile} 
-                style={buttonStyle}
+                onClick={handleBatchUpload} 
+                disabled={uploading || totalFilesSelected === 0} 
+                style={{...buttonStyle, marginTop: '10px'}}
             >
-              {uploadingImage ? 'Uploading...' : 'Upload Image'}
+              {uploading ? 'Uploading...' : `Upload Selected Files (${totalFilesSelected})`}
             </button>
-            {uploadImageError && <p style={errorMessageStyle}>{uploadImageError}</p>}
-            {uploadedImageUrl && (
-              <p style={successMessageStyle}>
-                Image uploaded: <a href={uploadedImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedImageUrl}</a><br />
-                (Markdown automatically inserted into content)
-              </p>
+            
+            {uploadError && <p style={errorMessageStyle}>{uploadError}</p>}
+            
+            {uploadedResults.length > 0 && (
+              <div style={successMessageStyle}>
+                <p style={{ fontWeight: 'bold' }}>{uploadedResults.length} file(s) successfully processed:</p>
+                <ul style={{ paddingLeft: '20px', margin: '5px 0' }}>
+                    {uploadedResults.map((result, index) => (
+                        <li key={index}>
+                            <a href={result.url} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{result.fileName}</a>
+                        </li>
+                    ))}
+                </ul>
+                <p>(Markdown/HTML snippets automatically inserted into content.)</p>
+              </div>
             )}
           </div>
-
-          {/* Video Upload Section */}
-          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
-            <label style={labelStyle}>Video Upload:</label>
-            <input type="file" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoFileChange} style={fileInputStyle} />
-            <button 
-                type="button" 
-                onClick={() => handleUpload(selectedVideoFile, setUploadingVideo, setUploadVideoError, 'video')} 
-                disabled={uploadingVideo || !selectedVideoFile} 
-                style={buttonStyle}
-            >
-              {uploadingVideo ? 'Uploading...' : 'Upload Video'}
-            </button>
-            {uploadVideoError && <p style={errorMessageStyle}>{uploadVideoError}</p>}
-            {uploadedVideoUrl && (
-              <p style={successMessageStyle}>
-                Video uploaded: <a href={uploadedVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedVideoUrl}</a><br />
-                (HTML/Source tag automatically inserted into content)
-              </p>
-            )}
-          </div>
-
-          {/* Audio Upload Section */}
-          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
-            <label style={labelStyle}>Audio Upload:</label>
-            <input type="file" accept="audio/mpeg,audio/wav,audio/ogg" onChange={handleAudioFileChange} style={fileInputStyle} />
-            <button 
-                type="button" 
-                onClick={() => handleUpload(selectedAudioFile, setUploadingAudio, setUploadAudioError, 'audio')} 
-                disabled={uploadingAudio || !selectedAudioFile} 
-                style={buttonStyle}
-            >
-              {uploadingAudio ? 'Uploading...' : 'Upload Audio'}
-            </button>
-            {uploadAudioError && <p style={errorMessageStyle}>{uploadAudioError}</p>}
-            {uploadedAudioUrl && (
-              <p style={successMessageStyle}>
-                Audio uploaded: <a href={uploadedAudioUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedAudioUrl}</a><br />
-                (HTML/Source tag automatically inserted into content)
-              </p>
-            )}
-          </div>
-          
-          {/* General File Upload Section */}
-          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
-            <label style={labelStyle}>General File Upload (Download Link):</label>
-            <input type="file" onChange={handleGeneralFileChange} style={fileInputStyle} />
-            <button 
-                type="button" 
-                onClick={() => handleUpload(selectedGeneralFile, setUploadingGeneral, setUploadGeneralError, 'general')} 
-                disabled={uploadingGeneral || !selectedGeneralFile} 
-                style={buttonStyle}
-            >
-              {uploadingGeneral ? 'Uploading...' : 'Upload File'}
-            </button>
-            {uploadGeneralError && <p style={errorMessageStyle}>{uploadGeneralError}</p>}
-            {uploadedGeneralUrl && (
-              <p style={successMessageStyle}>
-                File uploaded: <a href={uploadedGeneralUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedGeneralUrl}</a><br />
-                (Markdown Download Link automatically inserted into content)
-              </p>
-            )}
-          </div>
-
 
           <div style={formGroupStyle}>
             <label htmlFor="content" style={labelStyle}>Content (Markdown):</label>
@@ -363,7 +309,7 @@ function NewPostPage() {
               onChange={(e) => setContent(e.target.value)}
               rows="15"
               required
-              placeholder="Write your post content in Markdown here..."
+              placeholder="Write your post content in Markdown here... Inserted files will appear at the bottom."
               style={textareaStyle}
             ></textarea>
           </div>
@@ -379,7 +325,7 @@ function NewPostPage() {
 
           <button 
               type="submit" 
-              disabled={uploadingImage || uploadingVideo || uploadingAudio || uploadingGeneral} 
+              disabled={!isFormSubmittable} 
               style={submitButtonStyle}
           >
             Create Post
@@ -432,11 +378,11 @@ const errorMessageStyle = {
 };
 const successMessageStyle = {
   color: '#28a745', backgroundColor: '#d4edda', border: '1px solid #c3e6cb',
-  padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center',
+  padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'left',
   gridColumn: '1 / -1',
 };
 const uploadSectionStyle = {
-  display: 'flex', flexDirection: 'column', gap: '10px', padding: '15px',
+  display: 'flex', flexDirection: 'column', gap: '5px', padding: '15px',
   backgroundColor: '#f8f9fa', border: '1px dashed #ced4da', borderRadius: '5px',
   marginBottom: '20px',
 };
