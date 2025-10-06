@@ -1,14 +1,9 @@
-// ~/chi-blog/blog-frontend/src/pages/NewPostPage.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './NewPostPage.css';
 
 import { marked } from 'marked'; 
-// No need to import hljs or its styles here; they are loaded via CDN in public/index.html.
-// No need to import desktopLanguageDefinition; it's bundled in the CDN's highlight.min.js.
 
-// Configure Marked to use Highlight.js for syntax highlighting.
 marked.setOptions({
   highlight: function(code, lang) {
     if (window.hljs) {
@@ -44,6 +39,28 @@ const navLinkStyle = {
   transition: 'color 0.3s ease',
 };
 
+// Function to safely get MIME type from file extension
+const getMimeType = (fileName, category) => {
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    if (category === 'video') {
+        if (extension === 'mp4') return 'video/mp4';
+        if (extension === 'webm') return 'video/webm';
+        if (extension === 'ogg') return 'video/ogg';
+        return `video/${extension}`; // Fallback
+    }
+    
+    if (category === 'audio') {
+        if (extension === 'mp3') return 'audio/mpeg';
+        if (extension === 'wav') return 'audio/wav';
+        if (extension === 'ogg') return 'audio/ogg';
+        return `audio/${extension}`; // Fallback
+    }
+
+    // Default to application/octet-stream for general files
+    return 'application/octet-stream'; 
+};
+
 function NewPostPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -52,44 +69,56 @@ function NewPostPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  // Image Upload State
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
+  // Video Upload State
+  const [selectedVideoFile, setSelectedVideoFile] = useState(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadVideoError, setUploadVideoError] = useState(null);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState('');
+  
+  // Audio Upload State (New)
+  const [selectedAudioFile, setSelectedAudioFile] = useState(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadAudioError, setUploadAudioError] = useState(null);
+  const [uploadedAudioUrl, setUploadedAudioUrl] = useState('');
+
+  // General File Upload State (New)
+  const [selectedGeneralFile, setSelectedGeneralFile] = useState(null);
+  const [uploadingGeneral, setUploadingGeneral] = useState(false);
+  const [uploadGeneralError, setUploadGeneralError] = useState(null);
+  const [uploadedGeneralUrl, setUploadedGeneralUrl] = useState('');
+
   const [previewHtml, setPreviewHtml] = useState('');
 
-  // Updates preview HTML and applies Highlight.js on content change.
   useEffect(() => {
     const html = marked.parse(content);
     setPreviewHtml(html);
 
     if (window.hljs) {
-      // The 'desktop' language is already bundled in the CDN's highlight.min.js,
-      // so explicit registration here is not needed.
-
       const previewElement = document.getElementById('markdown-preview');
       if (previewElement) {
-        // Highlight code blocks within the preview.
         previewElement.querySelectorAll('pre code').forEach((block) => {
-          if (!block.classList.contains('hljs')) { // Prevent re-highlighting already processed blocks
+          if (!block.classList.contains('hljs')) {
             window.hljs.highlightElement(block);
           }
         });
       } else {
-        window.hljs.highlightAll(); // Fallback
+        window.hljs.highlightAll();
       }
     }
   }, [content]);
 
-  // Creates a URL-friendly slug from the post title.
   const createSlug = (inputTitle) => {
     let slug = inputTitle.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, '');
     slug = slug.replace(/[\s-]+/g, '-').replace(/^-+|-+$/g, '');
     return slug || 'untitled-post';
   };
 
-  // Handles post form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -130,13 +159,28 @@ function NewPostPage() {
     }
   };
 
-  // Handles file selection for image upload.
+  // --- File Change Handlers ---
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setUploadError(null);
   };
 
-  // Handles image file upload.
+  const handleVideoFileChange = (e) => {
+    setSelectedVideoFile(e.target.files[0]);
+    setUploadVideoError(null);
+  };
+  
+  const handleAudioFileChange = (e) => {
+    setSelectedAudioFile(e.target.files[0]);
+    setUploadAudioError(null);
+  };
+
+  const handleGeneralFileChange = (e) => {
+    setSelectedGeneralFile(e.target.files[0]);
+    setUploadGeneralError(null);
+  };
+
+  // --- Upload Handlers ---
   const handleImageUpload = async () => {
     if (!selectedFile) {
       setUploadError('Please select a file to upload.');
@@ -171,6 +215,126 @@ function NewPostPage() {
     }
   };
 
+  const handleVideoUpload = async () => {
+    if (!selectedVideoFile) {
+      setUploadVideoError('Please select a video file to upload.');
+      return;
+    }
+
+    setUploadingVideo(true);
+    setUploadVideoError(null);
+
+    const formData = new FormData();
+    formData.append('video', selectedVideoFile);
+
+    try {
+      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-video', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Video upload failed! Status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      setUploadedVideoUrl(result.url);
+      
+      const mimeType = getMimeType(selectedVideoFile.name, 'video');
+      
+      const videoMarkdown = `\n<video controls width="600">\n  <source src="${result.url.replace(/\s/g, "%20")}" type="${mimeType}">\n  Your browser does not support the video tag.\n</video>\n`;
+      
+      setContent((prevContent) => prevContent + videoMarkdown);
+      setSelectedVideoFile(null);
+    } catch (e) {
+      setUploadVideoError(e.message);
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+  
+  const handleAudioUpload = async () => {
+    if (!selectedAudioFile) {
+      setUploadAudioError('Please select an audio file to upload.');
+      return;
+    }
+
+    setUploadingAudio(true);
+    setUploadAudioError(null);
+
+    const formData = new FormData();
+    formData.append('audio', selectedAudioFile);
+
+    try {
+      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-audio', { // Assumed endpoint
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Audio upload failed! Status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      setUploadedAudioUrl(result.url);
+      
+      const mimeType = getMimeType(selectedAudioFile.name, 'audio');
+      
+      // Insert <audio> tag with source
+      const audioMarkdown = `\n<audio controls>\n  <source src="${result.url.replace(/\s/g, "%20")}" type="${mimeType}">\n  Your browser does not support the audio tag.\n</audio>\n`;
+      
+      setContent((prevContent) => prevContent + audioMarkdown);
+      setSelectedAudioFile(null);
+    } catch (e) {
+      setUploadAudioError(e.message);
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
+  const handleGeneralFileUpload = async () => {
+    if (!selectedGeneralFile) {
+      setUploadGeneralError('Please select a file to upload.');
+      return;
+    }
+
+    setUploadingGeneral(true);
+    setUploadGeneralError(null);
+
+    const formData = new FormData();
+    formData.append('file', selectedGeneralFile);
+
+    try {
+      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/upload-file', { // Assumed endpoint
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`File upload failed! Status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      setUploadedGeneralUrl(result.url);
+      
+      const fileName = selectedGeneralFile.name;
+      
+      // Insert Markdown link for download
+      const fileMarkdown = `\n[Download File: ${fileName}](${result.url.replace(/\s/g, "%20")})\n`;
+      
+      setContent((prevContent) => prevContent + fileMarkdown);
+      setSelectedGeneralFile(null);
+    } catch (e) {
+      setUploadGeneralError(e.message);
+    } finally {
+      setUploadingGeneral(false);
+    }
+  };
+
+
   return (
     <>
       <Header />
@@ -190,7 +354,8 @@ function NewPostPage() {
             <input type="text" id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required style={inputStyle} />
           </div>
 
-          <div style={{ ...formGroupStyle, ...imageUploadSectionStyle }}>
+          {/* Image Upload Section */}
+          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
             <label style={labelStyle}>Image Upload:</label>
             <input type="file" accept="image/*" onChange={handleFileChange} style={fileInputStyle} />
             <button type="button" onClick={handleImageUpload} disabled={uploading || !selectedFile} style={buttonStyle}>
@@ -199,15 +364,60 @@ function NewPostPage() {
             {uploadError && <p style={errorMessageStyle}>{uploadError}</p>}
             {uploadedImageUrl && (
               <p style={successMessageStyle}>
-                Image uploaded:{' '}
-                <a href={uploadedImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>
-                  {uploadedImageUrl}
-                </a>
-                <br />
+                Image uploaded: <a href={uploadedImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedImageUrl}</a><br />
                 (Markdown automatically inserted into content)
               </p>
             )}
           </div>
+
+          {/* Video Upload Section */}
+          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
+            <label style={labelStyle}>Video Upload:</label>
+            <input type="file" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoFileChange} style={fileInputStyle} />
+            <button type="button" onClick={handleVideoUpload} disabled={uploadingVideo || !selectedVideoFile} style={buttonStyle}>
+              {uploadingVideo ? 'Uploading...' : 'Upload Video'}
+            </button>
+            {uploadVideoError && <p style={errorMessageStyle}>{uploadVideoError}</p>}
+            {uploadedVideoUrl && (
+              <p style={successMessageStyle}>
+                Video uploaded: <a href={uploadedVideoUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedVideoUrl}</a><br />
+                (HTML/Source tag automatically inserted into content)
+              </p>
+            )}
+          </div>
+
+          {/* Audio Upload Section (NEW) */}
+          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
+            <label style={labelStyle}>Audio Upload:</label>
+            <input type="file" accept="audio/mpeg,audio/wav,audio/ogg" onChange={handleAudioFileChange} style={fileInputStyle} />
+            <button type="button" onClick={handleAudioUpload} disabled={uploadingAudio || !selectedAudioFile} style={buttonStyle}>
+              {uploadingAudio ? 'Uploading...' : 'Upload Audio'}
+            </button>
+            {uploadAudioError && <p style={errorMessageStyle}>{uploadAudioError}</p>}
+            {uploadedAudioUrl && (
+              <p style={successMessageStyle}>
+                Audio uploaded: <a href={uploadedAudioUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedAudioUrl}</a><br />
+                (HTML/Source tag automatically inserted into content)
+              </p>
+            )}
+          </div>
+          
+          {/* General File Upload Section (NEW) */}
+          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
+            <label style={labelStyle}>General File Upload (Download Link):</label>
+            <input type="file" onChange={handleGeneralFileChange} style={fileInputStyle} />
+            <button type="button" onClick={handleGeneralFileUpload} disabled={uploadingGeneral || !selectedGeneralFile} style={buttonStyle}>
+              {uploadingGeneral ? 'Uploading...' : 'Upload File'}
+            </button>
+            {uploadGeneralError && <p style={errorMessageStyle}>{uploadGeneralError}</p>}
+            {uploadedGeneralUrl && (
+              <p style={successMessageStyle}>
+                File uploaded: <a href={uploadedGeneralUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{uploadedGeneralUrl}</a><br />
+                (Markdown Download Link automatically inserted into content)
+              </p>
+            )}
+          </div>
+
 
           <div style={formGroupStyle}>
             <label htmlFor="content" style={labelStyle}>Content (Markdown):</label>
@@ -231,7 +441,7 @@ function NewPostPage() {
             />
           </div>
 
-          <button type="submit" disabled={uploading} style={submitButtonStyle}>
+          <button type="submit" disabled={uploading || uploadingVideo || uploadingAudio || uploadingGeneral} style={submitButtonStyle}>
             Create Post
           </button>
         </form>
@@ -285,7 +495,8 @@ const successMessageStyle = {
   padding: '10px', borderRadius: '5px', marginBottom: '20px', textAlign: 'center',
   gridColumn: '1 / -1',
 };
-const imageUploadSectionStyle = {
+// Unified style for all upload sections
+const uploadSectionStyle = {
   display: 'flex', flexDirection: 'column', gap: '10px', padding: '15px',
   backgroundColor: '#f8f9fa', border: '1px dashed #ced4da', borderRadius: '5px',
   marginBottom: '20px',
