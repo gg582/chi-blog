@@ -12,7 +12,7 @@ import (
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors" // Ensure this is imported
+	"github.com/go-chi/cors"
 
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
@@ -34,10 +34,7 @@ func main() {
 
 			// Apply CORS middleware first
 			r.Use(cors.Handler(cors.Options{
-				// AllowedOrigins: Specify the frontend origins allowed to make requests.
-				// For GitHub Pages, it must be HTTPS. Include http://localhost for local development.
-                //AllowedOrigins: []string{"https://localhost:3000", "http://localhost:3000", "https://chi-blog-seven.vercel.app", "http://chi-blog-seven.vercel.app"},
-                AllowedOrigins: []string{"*"},
+                AllowedOrigins: []string{"*"}, // Wildcard for all origins (Be cautious in production)
   				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 				// Expose specific headers if your frontend needs to read them
@@ -52,30 +49,38 @@ func main() {
 			r.Use(middleware.Recoverer)
 
 
-            handlers.ImageJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
-            workerpool.NewWorkerPool(numWorkers, handlers.ImageJobQueue)
+            // --- START OF CHANGES ---
+            // 1. Rename ImageJobQueue to FileJobQueue
+            handlers.FileJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
+            workerpool.NewWorkerPool(numWorkers, handlers.FileJobQueue)
+            // --- END OF CHANGES ---
+
 			// Define your routes
 			r.Post("/api/posts", handlers.GetPostsHandler)
 			r.Post("/api/posts/{id}", handlers.GetPostByIDHandler)
 			r.Get("/api/about", handlers.GetAboutPageHandler)
 			r.Get("/api/contact", handlers.GetContactPageHandler)
-			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) // this should not be accessible without proper login
-            r.Post("/api/upload-image", handlers.UploadImage)
+			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) 
+            
+            // --- START OF CHANGES ---
+            // 2. Rename route from /api/upload-image to /api/upload-file
+            // 3. Rename handler from handlers.UploadImage to handlers.UploadFile
+            r.Post("/api/upload-file", handlers.UploadFile)
+            // --- END OF CHANGES ---
+            
 			r.Post("/api/login", handlers.LoginHandler)
             fileServer := http.FileServer(http.Dir("./posts/assets")) 
         	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
 
-			log.Printf("Server starting on port :443 (HTTPS)...") // Log message changed to reflect HTTPS
+			log.Printf("Server starting on port :8080 (HTTPS)...")
 			database.InitDatabase()
 			log.Println("Database loaded.")
 
 			// Use http.ListenAndServeTLS for HTTPS.
-			// Provide the paths to your fullchain.pem and privkey.pem obtained from Certbot.
-			// These files are typically found in /etc/letsencrypt/live/YOUR_DOMAIN/
 			certFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/fullchain.pem" // ★★★ Update with your actual fullchain.pem path ★★★
 			keyFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/privkey.pem"   // ★★★ Update with your actual privkey.pem path ★★★
 
-			// HTTPS uses the standard 443 port.
+			// HTTPS server on port 8080 (or 443 if you change the port)
 			err := http.ListenAndServeTLS("0.0.0.0:8080", certFile, keyFile, r)
 			if err != nil {
 				log.Fatalf("HTTPS server failed to start on :8080: %v", err)
@@ -139,4 +144,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
