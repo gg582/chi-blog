@@ -34,13 +34,13 @@ func main() {
 
 			// Apply CORS middleware first
 			r.Use(cors.Handler(cors.Options{
-                AllowedOrigins: []string{"*"}, // Wildcard for all origins (Be cautious in production)
+                AllowedOrigins: []string{"*"}, // Wildcard for all origins
   				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 				// Expose specific headers if your frontend needs to read them
 				ExposedHeaders:   []string{"Link"},
-				// Allow sending cookies/auth headers with requests
-				AllowCredentials: true,
+				// AllowCredentials is set to false (default) to allow wildcard origins
+				AllowCredentials: false,
 				// How long the browser can cache the preflight response
 				MaxAge: 300, // 5 minutes
 			}))
