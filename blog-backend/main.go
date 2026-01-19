@@ -32,17 +32,45 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			r := chi.NewRouter()
 
-			// Apply CORS middleware first
+			// Modern CORS configuration
+			// Get allowed origins from environment variable, with sensible defaults
+			allowedOrigins := []string{
+				"https://hobbies.yoonjin2.kr",
+				"https://hobbies.yoonjin2.kr:3000",
+				"http://localhost:3000",
+			}
+			if envOrigins := os.Getenv("ALLOWED_ORIGINS"); envOrigins != "" {
+				origins := strings.Split(envOrigins, ",")
+				allowedOrigins = make([]string, 0, len(origins))
+				for _, origin := range origins {
+					if trimmed := strings.TrimSpace(origin); trimmed != "" {
+						allowedOrigins = append(allowedOrigins, trimmed)
+					}
+				}
+			}
+
 			r.Use(cors.Handler(cors.Options{
-                AllowedOrigins: []string{"*"}, // Wildcard for all origins
-  				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-				AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-				// Expose specific headers if your frontend needs to read them
-				ExposedHeaders:   []string{"Link"},
-				// AllowCredentials is set to false (default) to allow wildcard origins
-				AllowCredentials: false,
-				// How long the browser can cache the preflight response
-				MaxAge: 300, // 5 minutes
+				// Specific origins instead of wildcard for security
+				AllowedOrigins: allowedOrigins,
+				// Standard HTTP methods for REST APIs
+				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+				// Headers commonly used by modern web applications
+				AllowedHeaders: []string{
+					"Accept",
+					"Authorization",
+					"Content-Type",
+					"X-CSRF-Token",
+					"X-Requested-With",
+				},
+				// Headers that the browser can expose to the frontend
+				ExposedHeaders: []string{
+					"Link",
+					"X-Total-Count",
+				},
+				// Allow credentials for cookie-based authentication
+				AllowCredentials: true,
+				// Cache preflight requests for 1 hour to reduce overhead
+				MaxAge: 3600,
 			}))
 
 			r.Use(middleware.Logger)

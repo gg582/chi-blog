@@ -11,7 +11,7 @@
 *.dylib            # macOS dynamic libraries
 *.o                # Object files
 *.a                # Archive files
-blog-backend       # Your compiled Go executable (replace with your actual binary name if different)
+blog-backend/blog-backend       # Your compiled Go executable
 
 # Test results
 *.test             # Go test binaries
