@@ -14,11 +14,11 @@ Instead of using a wildcard (`*`), specific origins are whitelisted for security
 You can override the default allowed origins using the `ALLOWED_ORIGINS` environment variable:
 
 ```bash
-export ALLOWED_ORIGINS="https://example.com,https://app.example.com"
+export ALLOWED_ORIGINS="https://example.com, https://app.example.com, http://localhost:3000"
 ./blog-backend run
 ```
 
-Multiple origins should be comma-separated.
+Multiple origins should be comma-separated. Whitespace around origins is automatically trimmed, so you can format the list for readability.
 
 ### 3. **Credentials Support**
 `AllowCredentials: true` enables cookie-based authentication flows, which is essential for secure session management.

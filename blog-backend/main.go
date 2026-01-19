@@ -40,7 +40,13 @@ func main() {
 				"http://localhost:3000",
 			}
 			if envOrigins := os.Getenv("ALLOWED_ORIGINS"); envOrigins != "" {
-				allowedOrigins = strings.Split(envOrigins, ",")
+				origins := strings.Split(envOrigins, ",")
+				allowedOrigins = make([]string, 0, len(origins))
+				for _, origin := range origins {
+					if trimmed := strings.TrimSpace(origin); trimmed != "" {
+						allowedOrigins = append(allowedOrigins, trimmed)
+					}
+				}
 			}
 
 			r.Use(cors.Handler(cors.Options{
