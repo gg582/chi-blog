@@ -52,10 +52,17 @@ If you encounter CORS errors:
 
 ## Example Frontend Configuration
 
+Set the frontend API base URL with an environment variable (recommended):
+
+```bash
+# blog-frontend/.env.local
+REACT_APP_API_URL=http://localhost:8080
+```
+
 When making requests from the frontend with credentials:
 
 ```javascript
-fetch('https://hobbies.yoonjin2.kr:8080/api/posts', {
+fetch(`${process.env.REACT_APP_API_URL}/api/posts`, {
   method: 'POST',
   credentials: 'include', // Important for cookie-based auth
   headers: {
@@ -63,4 +70,15 @@ fetch('https://hobbies.yoonjin2.kr:8080/api/posts', {
   },
   body: JSON.stringify(data),
 })
+```
+
+## Backend Server Mode
+
+By default, the backend can run as a conventional HTTP server on `:8080`.
+
+To explicitly enable HTTPS mode with certificate files:
+
+```bash
+export USE_HTTPS=true
+./blog-backend run
 ```

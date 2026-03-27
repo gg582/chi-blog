@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
 )
@@ -85,8 +86,12 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			// Construct the public URL for the saved file.
-			publicURL := fmt.Sprintf("https://hobbies.yoonjin2.kr:8080/assets/%s", result.SavedFileName)
+			// Construct the public URL for the saved file based on the current request host/protocol.
+			scheme := "http"
+			if r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https") {
+				scheme = "https"
+			}
+			publicURL := fmt.Sprintf("%s://%s/assets/%s", scheme, r.Host, result.SavedFileName)
 
 			// Append the successful result to the list.
 			results = append(results, map[string]string{
