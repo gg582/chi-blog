@@ -35,8 +35,8 @@ func main() {
 			// Modern CORS configuration
 			// Get allowed origins from environment variable, with sensible defaults
 			allowedOrigins := []string{
-				"https://hobbies.yoonjin2.kr",
-				"https://hobbies.yoonjin2.kr:3000",
+				"https://chatter.pw",
+				"https://chatter.pw:3000",
 				"http://localhost:3000",
 			}
 			if envOrigins := os.Getenv("ALLOWED_ORIGINS"); envOrigins != "" {
@@ -111,8 +111,8 @@ func main() {
 			log.Println("Database loaded.")
 
 			// Use HTTPS only when explicitly enabled via USE_HTTPS=true.
-			certFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/fullchain.pem" // ★★★ Update with your actual fullchain.pem path ★★★
-			keyFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/privkey.pem"   // ★★★ Update with your actual privkey.pem path ★★★
+			certFile := "/etc/letsencrypt/live/chatter.pw/fullchain.pem" // ★★★ Update with your actual fullchain.pem path ★★★
+			keyFile := "/etc/letsencrypt/live/chatter.pw/privkey.pem"   // ★★★ Update with your actual privkey.pem path ★★★
 
 			var err error
 			if useHTTPS {

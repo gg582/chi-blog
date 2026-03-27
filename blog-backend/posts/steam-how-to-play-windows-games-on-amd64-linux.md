@@ -17,14 +17,14 @@ Now, let me explain how to install Windows game on AMD64 Linux.
 
 #### Step 1
 
-![My Steam Window](https://hobbies.yoonjin2.kr:8080/assets/STEAM.png)
+![My Steam Window](https://chatter.pw:8080/assets/STEAM.png)
 
 - Enter your Steam library list
 - Select your game from a list
 
 #### Step 2
 
-![Select Properties Menu](https://hobbies.yoonjin2.kr:8080/assets/SELECT_PROP.png)
+![Select Properties Menu](https://chatter.pw:8080/assets/SELECT_PROP.png)
 
 - Click a Gear Icon
 - Click `Properties...` from the Popup menu
@@ -32,7 +32,7 @@ Now, let me explain how to install Windows game on AMD64 Linux.
 
 #### Step 3
 
-![Checkbox enabled](https://hobbies.yoonjin2.kr:8080/assets/STEAM_PROTON.png)
+![Checkbox enabled](https://chatter.pw:8080/assets/STEAM_PROTON.png)
 
 - Check `Force the use of a specific Steam Play compatibility tool` to enable it
 - Select Your Proton version(`Proton Hotfix` is fine)
@@ -43,7 +43,7 @@ Now, let me explain how to install Windows game on AMD64 Linux.
 
 ### Example Screenshot of Triple-A Game
 
-![Elden Ring](https://hobbies.yoonjin2.kr:8080/assets/eldenring.png)
+![Elden Ring](https://chatter.pw:8080/assets/eldenring.png)
 
 
 Elden Ring runs smoothly on Linux.

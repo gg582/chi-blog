@@ -6,8 +6,8 @@ This application uses a modern, secure CORS configuration that follows best prac
 
 ### 1. **Specific Allowed Origins**
 Instead of using a wildcard (`*`), specific origins are whitelisted for security:
-- `https://hobbies.yoonjin2.kr` - Production frontend
-- `https://hobbies.yoonjin2.kr:3000` - Production with alternative port
+- `https://chatter.pw` - Production frontend
+- `https://chatter.pw:3000` - Production with alternative port
 - `http://localhost:3000` - Local development
 
 ### 2. **Environment Variable Support**

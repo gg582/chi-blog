@@ -40,6 +40,6 @@ Now, you can use the theme by selecting App theme from KDE Settings.
 ## Qogir theme + Two Docks (example)
 
 
-![Example theme](https://hobbies.yoonjin2.kr:8080/assets/Example.png)
+![Example theme](https://chatter.pw:8080/assets/Example.png)
 
-![Example with PCManFM-Qt](https://hobbies.yoonjin2.kr:8080/assets/Example%20with%20PCManFM.png)
+![Example with PCManFM-Qt](https://chatter.pw:8080/assets/Example%20with%20PCManFM.png)

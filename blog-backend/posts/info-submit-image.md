@@ -6,9 +6,9 @@ author: Lee Yunjin
 
 ## Image address from back-end
 
-`https://hobbies.yoonjin2.kr:8080/assets/{uploaded_image.extension}`
+`https://chatter.pw:8080/assets/{uploaded_image.extension}`
 
 
 I uploaded `Tux.png`.
 
-![Tux Image](https://hobbies.yoonjin2.kr:8080/assets/Tux.png)
+![Tux Image](https://chatter.pw:8080/assets/Tux.png)
