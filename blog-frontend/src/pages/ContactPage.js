@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header'; // Re-use the Header component
 import './ContactPage.css'; // Styling for the Contact page
+import API_BASE_URL from "../config/api";
 
 function ContactPage() {
   const [content, setContent] = useState(null);
@@ -11,7 +12,7 @@ function ContactPage() {
     const fetchContactContent = async () => {
       try {
         // Fetch content from the /api/contact endpoint
-        const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/contact');
+        const response = await fetch(`${API_BASE_URL}/api/contact`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

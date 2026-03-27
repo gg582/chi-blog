@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './NewPostPage.css';
+import API_BASE_URL from "../config/api";
 
 import { marked } from 'marked'; 
 
@@ -72,7 +73,7 @@ const getFileCategory = (file) => {
 };
 
 // --- API Endpoint Definition ---
-const UPLOAD_ENDPOINT = 'https://hobbies.yoonjin2.kr:8080/api/upload-file';
+const UPLOAD_ENDPOINT = `${API_BASE_URL}/api/upload-file`;
 
 
 function NewPostPage() {
@@ -131,7 +132,7 @@ function NewPostPage() {
       return;
     }
 
-    const backendUrl = `https://hobbies.yoonjin2.kr:8080/api/new-post/${encodeURIComponent(postSlug)}`;
+    const backendUrl = `${API_BASE_URL}/api/new-post/${encodeURIComponent(postSlug)}`;
     const postData = { title, content, author };
 
     try {

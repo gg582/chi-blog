@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/Header"; // Header component for navigation
 import BlogPostCard from "../components/BlogPostCard"; // Card component for each blog post
 import "./HomePage.css"; // Styling for the home page
+import API_BASE_URL from "../config/api";
 
 function HomePage() {
   const [posts, setPosts] = useState([]);
@@ -13,12 +14,9 @@ function HomePage() {
     const fetchPosts = async () => {
       try {
         // Fetch data from your Go Chi backend
-        const response = await fetch(
-          "https://hobbies.yoonjin2.kr:8080/api/posts",
-          {
-            method: "POST",
-          },
-        );
+        const response = await fetch(`${API_BASE_URL}/api/posts`, {
+          method: "POST",
+        });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

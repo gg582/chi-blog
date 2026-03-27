@@ -100,18 +100,28 @@ func main() {
             fileServer := http.FileServer(http.Dir("./posts/assets")) 
         	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
 
-			log.Printf("Server starting on port :8080 (HTTPS)...")
+			serverAddr := "0.0.0.0:8080"
+			useHTTPS := strings.EqualFold(os.Getenv("USE_HTTPS"), "true")
+			if useHTTPS {
+				log.Printf("Server starting on %s (HTTPS)...", serverAddr)
+			} else {
+				log.Printf("Server starting on %s (HTTP)...", serverAddr)
+			}
 			database.InitDatabase()
 			log.Println("Database loaded.")
 
-			// Use http.ListenAndServeTLS for HTTPS.
+			// Use HTTPS only when explicitly enabled via USE_HTTPS=true.
 			certFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/fullchain.pem" // ★★★ Update with your actual fullchain.pem path ★★★
 			keyFile := "/etc/letsencrypt/live/hobbies.yoonjin2.kr/privkey.pem"   // ★★★ Update with your actual privkey.pem path ★★★
 
-			// HTTPS server on port 8080 (or 443 if you change the port)
-			err := http.ListenAndServeTLS("0.0.0.0:8080", certFile, keyFile, r)
+			var err error
+			if useHTTPS {
+				err = http.ListenAndServeTLS(serverAddr, certFile, keyFile, r)
+			} else {
+				err = http.ListenAndServe(serverAddr, r)
+			}
 			if err != nil {
-				log.Fatalf("HTTPS server failed to start on :8080: %v", err)
+				log.Fatalf("server failed to start on %s: %v", serverAddr, err)
 			}
 		},
 	}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import "./PostDetailPage.css";
+import API_BASE_URL from "../config/api";
 
 // No need to import hljs here; it's loaded via CDN in public/index.html.
 // No need to import desktopLanguageDefinition; it's bundled in the CDN's highlight.min.js.
@@ -18,14 +19,11 @@ function PostDetailPage() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await fetch(
-          `https://hobbies.yoonjin2.kr:8080/api/posts/${id}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          },
-        );
+        const response = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
         if (!response.ok) {
           if (response.status === 404) { throw new Error("Post not found."); }
           throw new Error(`HTTP error! status: ${response.status}`);
