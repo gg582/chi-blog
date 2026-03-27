@@ -1,7 +1,7 @@
 // src/App.js
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 // Import all your page components
 import HomePage from './pages/HomePage';
@@ -12,7 +12,7 @@ import NewPostPage from './pages/NewPostPage';
 import LoginPage from './pages/LoginPage';
 
 // Import Authentication Context and Protected Route
-import { AuthProvider, useAuth } from './context/AuthContext'; // Import useAuth as well
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Import the Header component (now aware of auth state)
