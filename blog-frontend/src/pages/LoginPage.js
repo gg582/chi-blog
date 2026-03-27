@@ -4,6 +4,7 @@ import React, { useState } from 'react'; // Import React and useState for managi
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook from your AuthContext
 import Header from '../components/Header'; // ★★★ Import the reusable Header component ★★★
+import API_BASE_URL from "../config/api";
 
 /**
  * LoginPage Component
@@ -40,7 +41,7 @@ function LoginPage() {
     try {
       // Send a POST request to the backend's login API endpoint
       // NOTE: In a production environment, this URL MUST be HTTPS for security.
-      const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/login', {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST', // Use the POST HTTP method for login
         headers: {
           'Content-Type': 'application/json', // Inform the server that the request body is JSON

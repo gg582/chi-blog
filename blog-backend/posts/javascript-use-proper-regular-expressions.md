@@ -25,9 +25,9 @@ This properly encodes all spaces in the URL.
 
 For example, here’s a single-panel cartoon I uploaded:
 
-![Alt text for image](https://hobbies.yoonjin2.kr:8080/assets/free%20additional%20features.jpg)
+![Alt text for image](https://chatter.pw:8080/assets/free%20additional%20features.jpg)
 
-The URL is `https:/hobbies.yoonjin2.kr:8080/assets/free%20%additional%20features.jpg`.
+The URL is `https://chatter.pw:8080/assets/free%20additional%20features.jpg`.
 For visually impaired users, here’s the text content:
 
 ---

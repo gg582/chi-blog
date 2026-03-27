@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header'; // Re-use the Header component
 import './AboutPage.css'; // Styling for the About page
+import API_BASE_URL from "../config/api";
 
 function AboutPage() {
   const [content, setContent] = useState(null);
@@ -11,7 +12,7 @@ function AboutPage() {
     const fetchAboutContent = async () => {
       try {
         // Fetch content from the /api/about endpoint
-        const response = await fetch('https://hobbies.yoonjin2.kr:8080/api/about');
+        const response = await fetch(`${API_BASE_URL}/api/about`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
