@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"fmt"
 
@@ -141,13 +144,26 @@ func main() {
 						Cache:      autocert.DirCache(cacheDir),
 					}
 
+					challengeAddr := ":80"
+					challengeListener, listenErr := net.Listen("tcp", challengeAddr)
+					if listenErr != nil {
+						log.Fatalf("failed to bind Let's Encrypt challenge server on %s: %v", challengeAddr, listenErr)
+					}
+					challengeServer := &http.Server{
+						Handler: manager.HTTPHandler(nil),
+					}
+					challengeErrChan := make(chan error, 1)
 					go func() {
-						challengeAddr := ":80"
 						log.Printf("Starting HTTP-01 challenge server on %s for Let's Encrypt validation.", challengeAddr)
-						if challengeErr := http.ListenAndServe(challengeAddr, manager.HTTPHandler(nil)); challengeErr != nil {
-							log.Fatalf("failed to start Let's Encrypt challenge server on %s: %v", challengeAddr, challengeErr)
+						if challengeErr := challengeServer.Serve(challengeListener); challengeErr != nil && challengeErr != http.ErrServerClosed {
+							challengeErrChan <- challengeErr
 						}
 					}()
+					select {
+					case challengeErr := <-challengeErrChan:
+						log.Fatalf("Let's Encrypt challenge server failed before HTTPS startup: %v", challengeErr)
+					default:
+					}
 
 					autoTLSServer := &http.Server{
 						Addr:    serverAddr,
@@ -159,6 +175,11 @@ func main() {
 					}
 
 					err = autoTLSServer.ListenAndServeTLS("", "")
+					shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					if shutdownErr := challengeServer.Shutdown(shutdownCtx); shutdownErr != nil && shutdownErr != http.ErrServerClosed {
+						log.Printf("failed to shutdown challenge server cleanly: %v", shutdownErr)
+					}
 				}
 			} else {
 				err = http.ListenAndServe(serverAddr, r)
