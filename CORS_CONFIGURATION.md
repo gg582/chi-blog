@@ -76,9 +76,17 @@ fetch(`${process.env.REACT_APP_API_URL}/api/posts`, {
 
 By default, the backend can run as a conventional HTTP server on `:8080`.
 
-To explicitly enable HTTPS mode with certificate files:
+To explicitly enable HTTPS mode:
 
 ```bash
 export USE_HTTPS=true
 ./blog-backend run
 ```
+
+When HTTPS is enabled:
+
+1. If `/etc/letsencrypt/live/chatter.pw/fullchain.pem` and `/etc/letsencrypt/live/chatter.pw/privkey.pem` already exist, the backend uses those files directly.
+2. If those files do not exist, the backend automatically requests and serves a Let's Encrypt certificate for `chatter.pw` using ACME HTTP-01 challenge:
+   - challenge server: `:80`
+   - HTTPS server: `:8080`
+   - local certificate cache: `./cert-cache`
