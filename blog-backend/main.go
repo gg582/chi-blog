@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"fmt"
 
@@ -17,12 +22,18 @@ import (
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 const (
-    numWorkers = 5
-    jobQueueSize = 48
+	numWorkers  = 5
+	jobQueueSize = 48
 )
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
 
 func main() {
 	var chiBlog = &cobra.Command {
@@ -111,12 +122,65 @@ func main() {
 			log.Println("Database loaded.")
 
 			// Use HTTPS only when explicitly enabled via USE_HTTPS=true.
-			certFile := "/etc/letsencrypt/live/chatter.pw/fullchain.pem" // ★★★ Update with your actual fullchain.pem path ★★★
-			keyFile := "/etc/letsencrypt/live/chatter.pw/privkey.pem"   // ★★★ Update with your actual privkey.pem path ★★★
+			certFile := "/etc/letsencrypt/live/chatter.pw/fullchain.pem"
+			keyFile := "/etc/letsencrypt/live/chatter.pw/privkey.pem"
 
 			var err error
 			if useHTTPS {
-				err = http.ListenAndServeTLS(serverAddr, certFile, keyFile, r)
+				certExists := fileExists(certFile) && fileExists(keyFile)
+				if certExists {
+					log.Printf("Found existing TLS certificate files for chatter.pw. Starting HTTPS with local certificate on %s.", serverAddr)
+					err = http.ListenAndServeTLS(serverAddr, certFile, keyFile, r)
+				} else {
+					cacheDir := filepath.Join(".", "cert-cache")
+					if mkErr := os.MkdirAll(cacheDir, 0o700); mkErr != nil {
+						log.Fatalf("failed to create autocert cache directory %s: %v", cacheDir, mkErr)
+					}
+
+					log.Printf("TLS certificate not found at %s and %s. Requesting Let's Encrypt certificate for chatter.pw...", certFile, keyFile)
+					manager := &autocert.Manager{
+						Prompt:     autocert.AcceptTOS,
+						HostPolicy: autocert.HostWhitelist("chatter.pw"),
+						Cache:      autocert.DirCache(cacheDir),
+					}
+
+					challengeAddr := ":80"
+					challengeListener, listenErr := net.Listen("tcp", challengeAddr)
+					if listenErr != nil {
+						log.Fatalf("failed to bind Let's Encrypt challenge server on %s: %v", challengeAddr, listenErr)
+					}
+					challengeServer := &http.Server{
+						Handler: manager.HTTPHandler(nil),
+					}
+					challengeErrChan := make(chan error, 1)
+					go func() {
+						log.Printf("Starting HTTP-01 challenge server on %s for Let's Encrypt validation.", challengeAddr)
+						if challengeErr := challengeServer.Serve(challengeListener); challengeErr != nil && challengeErr != http.ErrServerClosed {
+							challengeErrChan <- challengeErr
+						}
+					}()
+					select {
+					case challengeErr := <-challengeErrChan:
+						log.Fatalf("Let's Encrypt challenge server failed before HTTPS startup: %v", challengeErr)
+					default:
+					}
+
+					autoTLSServer := &http.Server{
+						Addr:    serverAddr,
+						Handler: r,
+						TLSConfig: &tls.Config{
+							MinVersion:     tls.VersionTLS12,
+							GetCertificate: manager.GetCertificate,
+						},
+					}
+
+					err = autoTLSServer.ListenAndServeTLS("", "")
+					shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					if shutdownErr := challengeServer.Shutdown(shutdownCtx); shutdownErr != nil && shutdownErr != http.ErrServerClosed {
+						log.Printf("failed to shutdown challenge server cleanly: %v", shutdownErr)
+					}
+				}
 			} else {
 				err = http.ListenAndServe(serverAddr, r)
 			}
