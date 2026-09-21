@@ -17,7 +17,6 @@ import (
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
@@ -42,47 +41,6 @@ func main() {
 		Long: `Run chi-based personal blog backend at localhost:8080`,
 		Run: func(cmd *cobra.Command, args []string) {
 			r := chi.NewRouter()
-
-			// Modern CORS configuration
-			// Get allowed origins from environment variable, with sensible defaults
-			allowedOrigins := []string{
-				"https://chatter.pw",
-				"https://chatter.pw:3000",
-				"http://localhost:3000",
-			}
-			if envOrigins := os.Getenv("ALLOWED_ORIGINS"); envOrigins != "" {
-				origins := strings.Split(envOrigins, ",")
-				allowedOrigins = make([]string, 0, len(origins))
-				for _, origin := range origins {
-					if trimmed := strings.TrimSpace(origin); trimmed != "" {
-						allowedOrigins = append(allowedOrigins, trimmed)
-					}
-				}
-			}
-
-			r.Use(cors.Handler(cors.Options{
-				// Specific origins instead of wildcard for security
-				AllowedOrigins: allowedOrigins,
-				// Standard HTTP methods for REST APIs
-				AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-				// Headers commonly used by modern web applications
-				AllowedHeaders: []string{
-					"Accept",
-					"Authorization",
-					"Content-Type",
-					"X-CSRF-Token",
-					"X-Requested-With",
-				},
-				// Headers that the browser can expose to the frontend
-				ExposedHeaders: []string{
-					"Link",
-					"X-Total-Count",
-				},
-				// Allow credentials for cookie-based authentication
-				AllowCredentials: true,
-				// Cache preflight requests for 1 hour to reduce overhead
-				MaxAge: 3600,
-			}))
 
 			r.Use(middleware.Logger)
 			r.Use(middleware.Recoverer)
@@ -110,6 +68,36 @@ func main() {
 			r.Post("/api/login", handlers.LoginHandler)
             fileServer := http.FileServer(http.Dir("./posts/assets")) 
         	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
+
+			// Serve React frontend static files from ../blog-frontend/build
+			staticDir := http.Dir("../blog-frontend/build")
+			staticFS := http.FileServer(staticDir)
+
+			r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
+				// API routes are already registered above; let chi handle those first.
+				// For everything else, try to serve a static file.
+				// If the file doesn't exist (SPA route), serve index.html.
+				path := req.URL.Path
+				if path == "/" {
+					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					return
+				}
+				// Try to open the requested file
+				f, err := staticDir.Open(path)
+				if err != nil {
+					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					return
+				}
+				defer f.Close()
+				// Check if it's a directory
+				stat, err := f.Stat()
+				if err != nil || stat.IsDir() {
+					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					return
+				}
+				// It's a real file — serve it
+				staticFS.ServeHTTP(w, req)
+			})
 
 			serverAddr := "0.0.0.0:8080"
 			useHTTPS := strings.EqualFold(os.Getenv("USE_HTTPS"), "true")

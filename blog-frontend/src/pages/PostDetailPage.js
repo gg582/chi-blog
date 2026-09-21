@@ -2,12 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Header from "../components/Header";
 import "./PostDetailPage.css";
 import API_BASE_URL from "../config/api";
-
-// No need to import hljs here; it's loaded via CDN in public/index.html.
-// No need to import desktopLanguageDefinition; it's bundled in the CDN's highlight.min.js.
 
 function PostDetailPage() {
   const { id } = useParams();
@@ -15,7 +11,6 @@ function PostDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Effect hook: Fetches post data from the backend.
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -39,22 +34,15 @@ function PostDetailPage() {
     fetchPost();
   }, [id]);
 
-  // Effect hook: Applies Highlight.js after post HTML content is rendered.
   useEffect(() => {
-    if (window.hljs) { // Check if window.hljs is available.
-      // The 'desktop' language is already bundled in the CDN's highlight.min.js,
-      // so explicit registration here is not needed.
-
-      if (post && post.contentHtml) {
-        // Highlight code blocks within the specific post content div.
-        const postContentElement = document.querySelector('.post-detail-content');
-        if (postContentElement) {
-            postContentElement.querySelectorAll('pre code').forEach((block) => {
-                if (!block.classList.contains('hljs')) { // Prevent re-highlighting already processed blocks.
-                    window.hljs.highlightElement(block);
-                }
-            });
-        }
+    if (window.hljs && post && post.contentHtml) {
+      const postContentElement = document.querySelector('.post-detail-content');
+      if (postContentElement) {
+        postContentElement.querySelectorAll('pre code').forEach((block) => {
+          if (!block.classList.contains('hljs')) {
+            window.hljs.highlightElement(block);
+          }
+        });
       }
     }
   }, [post]);
@@ -62,8 +50,9 @@ function PostDetailPage() {
   if (loading) {
     return (
       <div className="post-detail-page">
-        <Header />
-        <main className="container"> <p>Loading post...</p> </main>
+        <main className="container">
+          <div className="loading-spinner">Loading post...</div>
+        </main>
       </div>
     );
   }
@@ -71,8 +60,12 @@ function PostDetailPage() {
   if (error) {
     return (
       <div className="post-detail-page">
-        <Header />
-        <main className="container"> <p>Error: {error.message}</p> </main>
+        <main className="container">
+          <div className="error-box">
+            <h2>Error</h2>
+            <p>{error.message}</p>
+          </div>
+        </main>
       </div>
     );
   }
@@ -80,21 +73,23 @@ function PostDetailPage() {
   if (!post) {
     return (
       <div className="post-detail-page">
-        <Header />
-        <main className="container"> <p>Post not found.</p> </main>
+        <main className="container">
+          <div className="error-box">
+            <p>Post not found.</p>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
     <div className="post-detail-page">
-      <Header />
       <main className="container">
+        <h1 className="post-detail-title">{post.title}</h1>
         <p className="post-detail-meta">
           Author: {post.author} | Date:{" "}
           {new Date(post.createdAt).toLocaleDateString()}
         </p>
-        {/* Renders post HTML content. Highlight.js will process code tags inside. */}
         <div
           className="post-detail-content"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}

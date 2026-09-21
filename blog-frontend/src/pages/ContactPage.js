@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header'; // Re-use the Header component
-import './ContactPage.css'; // Styling for the Contact page
+import './ContactPage.css';
 import API_BASE_URL from "../config/api";
 
 function ContactPage() {
@@ -11,13 +10,11 @@ function ContactPage() {
   useEffect(() => {
     const fetchContactContent = async () => {
       try {
-        // Fetch content from the /api/contact endpoint
         const response = await fetch(`${API_BASE_URL}/api/contact`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        // Assuming the backend sends a JSON object with 'title' and 'contentHtml'
         setContent(data);
       } catch (e) {
         setError(e);
@@ -27,14 +24,13 @@ function ContactPage() {
     };
 
     fetchContactContent();
-  }, []); // Empty dependency array means this effect runs only once on mount
+  }, []);
 
   if (loading) {
     return (
       <div className="contact-page">
-        <Header />
         <main className="container">
-          <p>Loading Contact page...</p>
+          <div className="loading-spinner">Loading Contact page...</div>
         </main>
       </div>
     );
@@ -43,22 +39,20 @@ function ContactPage() {
   if (error) {
     return (
       <div className="contact-page">
-        <Header />
         <main className="container">
-          <p>Error: {error.message}</p>
+          <div className="error-box">
+            <h2>Error</h2>
+            <p>{error.message}</p>
+          </div>
         </main>
       </div>
     );
   }
 
-  // Render the Contact page content
   return (
     <div className="contact-page">
-      <Header /> {/* Header is rendered once */}
       <main className="container">
-        {/* Display the title, if available */}
         {content && content.title && <h1 className="contact-title">{content.title}</h1>}
-        {/* Render the HTML content directly */}
         {content && content.contentHtml && (
           <div className="contact-content" dangerouslySetInnerHTML={{ __html: content.contentHtml }}></div>
         )}

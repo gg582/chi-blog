@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './NewPostPage.css';
 import API_BASE_URL from "../config/api";
 
@@ -17,28 +17,6 @@ marked.setOptions({
   gfm: true,
   breaks: true,
 });
-
-function Header() { 
-  return (
-    <header style={{
-      position: 'fixed', top: 0, left: 0, right: 0, height: '60px', backgroundColor: '#333',
-      color: 'white', display: 'flex', alignItems: 'center', padding: '0 20px', fontSize: '1.1rem',
-      zIndex: 1000, justifyContent: 'space-between', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    }}>
-      <div style={{ fontWeight: 'bold' }}>Linuxer&apos;s Blog</div>
-      <nav>
-        <Link to="/" style={navLinkStyle}>Home</Link>
-        <Link to="/about" style={navLinkStyle}>About</Link>
-        <Link to="/contact" style={navLinkStyle}>Contact</Link>
-      </nav>
-    </header>
-  );
-}
-
-const navLinkStyle = {
-  color: 'white', textDecoration: 'none', marginLeft: '20px', fontWeight: 'normal',
-  transition: 'color 0.3s ease',
-};
 
 // Function to safely get MIME type from file extension
 const getMimeType = (fileName, category) => {
@@ -242,98 +220,95 @@ function NewPostPage() {
 
 
   return (
-    <>
-      <Header />
-      <main style={mainStyle}>
-        <h2 style={h2Style}>Create New Post</h2>
-        <form onSubmit={handleSubmit} style={formStyle}>
-          {error && <p style={errorMessageStyle}>{error}</p>}
-          {success && <p style={successMessageStyle}>Post created successfully!</p>}
+    <main style={mainStyle}>
+      <h2 style={h2Style}>Create New Post</h2>
+      <form onSubmit={handleSubmit} style={formStyle}>
+        {error && <p style={errorMessageStyle}>{error}</p>}
+        {success && <p style={successMessageStyle}>Post created successfully!</p>}
 
-          <div style={formGroupStyle}>
-            <label htmlFor="title" style={labelStyle}>Title:</label>
-            <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required style={inputStyle} />
-          </div>
+        <div style={formGroupStyle}>
+          <label htmlFor="title" style={labelStyle}>Title:</label>
+          <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} required style={inputStyle} />
+        </div>
 
-          <div style={formGroupStyle}>
-            <label htmlFor="author" style={labelStyle}>Author:</label>
-            <input type="text" id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required style={inputStyle} />
-          </div>
+        <div style={formGroupStyle}>
+          <label htmlFor="author" style={labelStyle}>Author:</label>
+          <input type="text" id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required style={inputStyle} />
+        </div>
 
-          {/* Unified Batch File Upload Section */}
-          <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
-            <label style={labelStyle}>File Upload (Select Multiple Files):</label>
-            <input 
-                type="file" 
-                id="file-upload-input" 
-                multiple 
-                onChange={handleFileChange} 
-                style={fileInputStyle} 
-                accept="image/*,video/*,audio/*,.pdf,.zip,.tar.gz" // Suggest common files
-            />
-            {totalFilesSelected > 0 && (
-                <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#007bff' }}>
-                    **{totalFilesSelected} file(s) selected.** Click Upload to insert into content.
-                </p>
-            )}
-            <button 
-                type="button" 
-                onClick={handleBatchUpload} 
-                disabled={uploading || totalFilesSelected === 0} 
-                style={{...buttonStyle, marginTop: '10px'}}
-            >
-              {uploading ? 'Uploading...' : `Upload Selected Files (${totalFilesSelected})`}
-            </button>
-            
-            {uploadError && <p style={errorMessageStyle}>{uploadError}</p>}
-            
-            {uploadedResults.length > 0 && (
-              <div style={successMessageStyle}>
-                <p style={{ fontWeight: 'bold' }}>{uploadedResults.length} file(s) successfully processed:</p>
-                <ul style={{ paddingLeft: '20px', margin: '5px 0' }}>
-                    {uploadedResults.map((result, index) => (
-                        <li key={index}>
-                            <a href={result.url} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{result.fileName}</a>
-                        </li>
-                    ))}
-                </ul>
-                <p>(Markdown/HTML snippets automatically inserted into content.)</p>
-              </div>
-            )}
-          </div>
-
-          <div style={formGroupStyle}>
-            <label htmlFor="content" style={labelStyle}>Content (Markdown):</label>
-            <textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows="15"
-              required
-              placeholder="Write your post content in Markdown here... Inserted files will appear at the bottom."
-              style={textareaStyle}
-            ></textarea>
-          </div>
-
-          <div style={previewSectionStyle}>
-            <h3 style={previewHeadingStyle}>Preview</h3>
-            <div
-              id="markdown-preview"
-              style={previewContentStyle}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
-          </div>
-
+        {/* Unified Batch File Upload Section */}
+        <div style={{ ...formGroupStyle, ...uploadSectionStyle }}>
+          <label style={labelStyle}>File Upload (Select Multiple Files):</label>
+          <input 
+              type="file" 
+              id="file-upload-input" 
+              multiple 
+              onChange={handleFileChange} 
+              style={fileInputStyle} 
+              accept="image/*,video/*,audio/*,.pdf,.zip,.tar.gz"
+          />
+          {totalFilesSelected > 0 && (
+              <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#007bff' }}>
+                  **{totalFilesSelected} file(s) selected.** Click Upload to insert into content.
+              </p>
+          )}
           <button 
-              type="submit" 
-              disabled={!isFormSubmittable} 
-              style={submitButtonStyle}
+              type="button" 
+              onClick={handleBatchUpload} 
+              disabled={uploading || totalFilesSelected === 0} 
+              style={{...buttonStyle, marginTop: '10px'}}
           >
-            Create Post
+            {uploading ? 'Uploading...' : `Upload Selected Files (${totalFilesSelected})`}
           </button>
-        </form>
-      </main>
-    </>
+          
+          {uploadError && <p style={errorMessageStyle}>{uploadError}</p>}
+          
+          {uploadedResults.length > 0 && (
+            <div style={successMessageStyle}>
+              <p style={{ fontWeight: 'bold' }}>{uploadedResults.length} file(s) successfully processed:</p>
+              <ul style={{ paddingLeft: '20px', margin: '5px 0' }}>
+                  {uploadedResults.map((result, index) => (
+                      <li key={index}>
+                          <a href={result.url} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff' }}>{result.fileName}</a>
+                      </li>
+                  ))}
+              </ul>
+              <p>(Markdown/HTML snippets automatically inserted into content.)</p>
+            </div>
+          )}
+        </div>
+
+        <div style={formGroupStyle}>
+          <label htmlFor="content" style={labelStyle}>Content (Markdown):</label>
+          <textarea
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows="15"
+            required
+            placeholder="Write your post content in Markdown here... Inserted files will appear at the bottom."
+            style={textareaStyle}
+          ></textarea>
+        </div>
+
+        <div style={previewSectionStyle}>
+          <h3 style={previewHeadingStyle}>Preview</h3>
+          <div
+            id="markdown-preview"
+            style={previewContentStyle}
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
+          />
+        </div>
+
+        <button 
+            type="submit" 
+            disabled={!isFormSubmittable} 
+            style={submitButtonStyle}
+        >
+          Create Post
+        </button>
+      </form>
+    </main>
   );
 }
 
