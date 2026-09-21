@@ -37,6 +37,8 @@ type Config struct {
 	HTTPChallengeAddr string
 	// AllowedOrigins is the list of CORS-allowed origins. Empty means no CORS middleware.
 	AllowedOrigins []string
+	// AuthSecret is the HMAC key used to sign auth tokens. Empty generates a random per-process secret.
+	AuthSecret string
 }
 
 func getenv(key, fallback string) string {
@@ -65,6 +67,7 @@ func Load() *Config {
 	}
 
 	cfg.UseHTTPS = strings.EqualFold(os.Getenv("USE_HTTPS"), "true")
+	cfg.AuthSecret = os.Getenv("AUTH_SECRET")
 
 	if raw := os.Getenv("ALLOWED_ORIGINS"); raw != "" {
 		for _, origin := range strings.Split(raw, ",") {

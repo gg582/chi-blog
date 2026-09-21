@@ -1,0 +1,98 @@
+/* ~/chi-blog/blog-frontend/src/pages/EditPostPage.css */
+
+.edit-post-page {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+  padding-top: 100px;
+}
+
+.edit-post-page h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.edit-post-page form {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.edit-post-page .form-group {
+  margin-bottom: 20px;
+}
+
+.edit-post-page label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+.edit-post-page textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  min-height: 300px;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.edit-post-page .error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.edit-post-page .preview-section {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  min-height: 200px;
+  margin-bottom: 20px;
+}
+
+.edit-post-page .preview-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.edit-post-page .preview-content {
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.edit-post-page .save-button {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.edit-post-page .save-button:hover {
+  background-color: #218838;
+}
+
+.edit-post-page .save-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}

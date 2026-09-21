@@ -6,6 +6,7 @@ import (
 
 	"github.com/gg582/chi-blog/blog-backend/config"
 	"github.com/gg582/chi-blog/blog-backend/handlers"
+	"github.com/gg582/chi-blog/blog-backend/utils"
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -36,9 +37,15 @@ func NewRouter(cfg *config.Config) http.Handler {
 	}
 
 	h := handlers.NewHandlers(cfg.PostsDir, cfg.AssetsDir, cfg.AboutMD, cfg.ContactMD)
+	utils.SetAuthSecret(cfg.AuthSecret)
 
 	r.Post("/api/posts", h.GetPostsHandler)
 	r.Post("/api/posts/{id}", h.GetPostByIDHandler)
+	r.Get("/api/posts/{id}/raw", h.GetRawPostHandler)
+	r.Post("/api/edit-post/{id}", handlers.RequireAuth(h.EditPostHandler))
+	r.Post("/api/delete-post/{id}", handlers.RequireAuth(h.DeletePostHandler))
+	r.Get("/api/files", handlers.RequireAuth(h.GetFilesHandler))
+	r.Post("/api/delete-file", handlers.RequireAuth(h.DeleteFileHandler))
 	r.Get("/api/about", h.GetAboutPageHandler)
 	r.Get("/api/contact", h.GetContactPageHandler)
 	r.Post("/api/new-post/{id}", h.CreateNewPostHandler)

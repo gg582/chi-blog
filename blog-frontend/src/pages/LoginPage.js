@@ -29,8 +29,9 @@ function LoginPage() {
       if (response.ok) {
         const data = await response.json();
         setMessage(data.message || 'Login successful!');
-        login('some_auth_token_from_backend');
-        localStorage.setItem('authToken', 'true');
+        // Store the real token returned by the backend; fall back to 'true'
+        // if the backend does not provide one.
+        login(data.token || 'true');
         navigate('/new-post');
       } else {
         const errorData = await response.json();

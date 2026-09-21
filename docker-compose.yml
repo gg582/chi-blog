@@ -1,0 +1,31 @@
+# chi-blog (https://github.com/gg582/chi-blog)
+#
+# Usage:
+#   docker compose up -d --build
+#   docker compose exec chi-blog chi-blog init   # create the admin account (interactive)
+#
+# Data (posts, uploaded assets, about/contact, auth.db) lives in the named
+# volume below. On first start it is seeded from the image; afterwards it
+# persists independently of the image, so rebuilding never loses content.
+
+services:
+  chi-blog:
+    build: .
+    image: chi-blog:latest
+    container_name: chi-blog
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_ADDR: ":8080"
+      STATIC_DIR: /app/blog-frontend/build
+      # Set a persistent secret or login tokens are invalidated on every restart:
+      # AUTH_SECRET: "change-me"
+      # Only needed when the frontend is served from another origin:
+      # ALLOWED_ORIGINS: "https://chatter.pw,http://localhost:3000"
+      # TLS is expected to be terminated by a reverse proxy; keep USE_HTTPS unset.
+    volumes:
+      - chi-blog-data:/app/blog-backend
+    restart: unless-stopped
+
+volumes:
+  chi-blog-data:

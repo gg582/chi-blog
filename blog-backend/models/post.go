@@ -18,3 +18,10 @@ type NewPostRequest struct {
 	Author  string `json:"author"`
 	Content string `json:"content"` // Markdown content
 }
+
+// FileInfo describes a single file in the assets directory.
+type FileInfo struct {
+	Name       string `json:"name"`
+	Size       int64  `json:"size"`
+	ModifiedAt string `json:"modifiedAt"` // RFC3339 timestamp
+}

@@ -41,6 +41,11 @@ function Header() {
             <li style={{ marginRight: '15px' }}><Link to="/new-post" style={{ color: 'white', textDecoration: 'none' }}>New Post</Link></li>
           )}
 
+          {/* Conditional rendering: Show "Dashboard" only if authenticated */}
+          {isAuthenticated && (
+            <li style={{ marginRight: '15px' }}><Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link></li>
+          )}
+
           {/* Conditional rendering: Show "Logout" if authenticated, "Login" otherwise */}
           {isAuthenticated ? (
             <li style={{ marginRight: '15px' }}>

@@ -1,0 +1,54 @@
+/* ~/chi-blog/blog-frontend/src/pages/DashboardPage.css */
+
+.dashboard-page .container {
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.dashboard-title {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.dashboard-page .files-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.dashboard-page .files-table th,
+.dashboard-page .files-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.dashboard-page .files-table th {
+  background-color: #f8f9fa;
+  color: #555;
+  font-weight: bold;
+}
+
+.dashboard-page .files-table .file-name {
+  word-break: break-all;
+}
+
+.dashboard-page .file-delete-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-page .file-delete-btn:hover {
+  background-color: #a71d2a;
+}

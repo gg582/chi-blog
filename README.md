@@ -29,6 +29,7 @@ The backend is configured via environment variables (all are optional; defaults 
 | `ACME_CACHE_DIR` | `./cert-cache` | Local cache for ACME certificates |
 | `HTTP_CHALLENGE_ADDR` | `:80` | Listen address for the ACME HTTP-01 challenge server |
 | `ALLOWED_ORIGINS` | *(unset)* | Comma-separated CORS origins; when unset, no CORS middleware is added |
+| `AUTH_SECRET` | *(random per start)* | HMAC secret for login tokens; set a persistent value or tokens are invalidated on every restart |
 
 Example:
 
@@ -53,5 +54,16 @@ Run:
 
 ```bash
 docker run -p 8080:8080 -e ALLOWED_ORIGINS=https://chatter.pw,http://localhost:3000 chi-blog
+```
+
+### Docker Compose
+
+The root `docker-compose.yml` is the recommended way to run the blog. It
+persists all content (posts, uploaded assets, about/contact pages, `auth.db`)
+in a named volume that is seeded from the image on first start:
+
+```bash
+docker compose up -d --build
+docker compose exec chi-blog chi-blog init   # create the admin account
 ```
 

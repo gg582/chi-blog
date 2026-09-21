@@ -9,6 +9,8 @@ import PostDetailPage from './pages/PostDetailPage'; // Assuming you have this
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import NewPostPage from './pages/NewPostPage';
+import EditPostPage from './pages/EditPostPage';
+import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 
 // Import Authentication Context and Protected Route
@@ -46,6 +48,26 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <NewPostPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected route for EditPostPage: only accessible if authenticated */}
+          <Route
+            path="/edit-post/:id"
+            element={
+              <ProtectedRoute>
+                <EditPostPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected route for DashboardPage: only accessible if authenticated */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
               </ProtectedRoute>
             }
           />

@@ -1,15 +1,19 @@
 // ~/chi-blog/blog-frontend/src/pages/PostDetailPage.js
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./PostDetailPage.css";
-import API_BASE_URL from "../config/api";
+import API_BASE_URL, { authHeaders, clearAuthAndRedirect } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function PostDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -46,6 +50,29 @@ function PostDetailPage() {
       }
     }
   }, [post]);
+
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this post?")) {
+      return;
+    }
+    setActionError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/delete-post/${id}`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      if (response.status === 401) {
+        clearAuthAndRedirect();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      navigate("/");
+    } catch (e) {
+      setActionError(e.message);
+    }
+  };
 
   if (loading) {
     return (
@@ -94,6 +121,25 @@ function PostDetailPage() {
           className="post-detail-content"
           dangerouslySetInnerHTML={{ __html: post.contentHtml }}
         ></div>
+        {isAuthenticated && (
+          <div className="post-actions">
+            {actionError && <p className="post-actions-error">{actionError}</p>}
+            <button
+              type="button"
+              className="post-action-btn"
+              onClick={() => navigate(`/edit-post/${id}`)}
+            >
+              Update
+            </button>
+            <button
+              type="button"
+              className="post-action-btn post-action-btn-danger"
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
