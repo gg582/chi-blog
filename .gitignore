@@ -35,12 +35,12 @@ posts/             # If you consider blog post markdown files as generated conte
                    # Consider carefully if you want to version control your actual markdown posts.
                    # If you want to commit your .md files, remove this line.
 
- blog-frontend/node_modules/
- blog-frontend/build/
- blog-frontend/.env.local
- blog-frontend/.env*.local
- blog-frontend/dist/
- blog-frontend/out/
+blog-frontend/node_modules/
+blog-frontend/build/
+blog-frontend/.env.local
+blog-frontend/.env*.local
+blog-frontend/dist/
+blog-frontend/out/
 
 # Environment variables
 .env

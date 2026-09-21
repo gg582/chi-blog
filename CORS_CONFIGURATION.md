@@ -5,9 +5,9 @@ This application uses a modern, secure CORS configuration that follows best prac
 ## Features
 
 ### 1. **Specific Allowed Origins**
-Instead of using a wildcard (`*`), specific origins are whitelisted for security:
+Instead of using a wildcard (`*`), specific origins are whitelisted for security. The backend ships with **no built-in origins**: CORS middleware is only added when `ALLOWED_ORIGINS` is set. A typical configuration looks like:
+
 - `https://chatter.pw` - Production frontend
-- `https://chatter.pw:3000` - Production with alternative port
 - `http://localhost:3000` - Local development
 
 ### 2. **Environment Variable Support**
@@ -19,6 +19,8 @@ export ALLOWED_ORIGINS="https://example.com, https://app.example.com, http://loc
 ```
 
 Multiple origins should be comma-separated. Whitespace around origins is automatically trimmed, so you can format the list for readability.
+
+If `ALLOWED_ORIGINS` is unset or empty, the backend adds **no CORS middleware at all** and serves same-origin requests only.
 
 ### 3. **Credentials Support**
 `AllowCredentials: true` enables cookie-based authentication flows, which is essential for secure session management.

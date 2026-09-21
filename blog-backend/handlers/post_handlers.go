@@ -9,15 +9,15 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-        "github.com/russross/blackfriday/v2"
+	"github.com/russross/blackfriday/v2"
 
-	"github.com/gg582/chi-blog/blog-backend/models"    // Import models package
-	"github.com/gg582/chi-blog/blog-backend/utils" // Import utils package
+	"github.com/gg582/chi-blog/blog-backend/models" // Import models package
+	"github.com/gg582/chi-blog/blog-backend/utils"    // Import utils package
 )
 
 // GetPostsHandler handles fetching all blog posts.
-func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
-	posts, err := utils.GetPosts("./posts") // Use the utility function
+func (h *Handlers) GetPostsHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := utils.GetPosts(h.PostsDir)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -28,11 +28,11 @@ func GetPostsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetPostByIDHandler handles fetching a single blog post by its ID (slug).
-func GetPostByIDHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetPostByIDHandler(w http.ResponseWriter, r *http.Request) {
 	postID := chi.URLParam(r, "id") // Get the post ID (slug) from the URL
 
-	filePath := filepath.Join("./posts", postID+".md") // Construct the file path
-	
+	filePath := filepath.Join(h.PostsDir, postID+".md") // Construct the file path
+
 	content, err := os.ReadFile(filePath) // Use os.ReadFile
 	if err != nil {
 		if os.IsNotExist(err) {

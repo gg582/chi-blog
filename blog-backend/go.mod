@@ -5,6 +5,7 @@ go 1.24.5
 require (
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/mattn/go-sqlite3 v1.14.28
+	github.com/rs/cors v1.11.1
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/crypto v0.40.0

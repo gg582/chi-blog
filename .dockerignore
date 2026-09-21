@@ -1,0 +1,8 @@
+.git
+node_modules
+blog-frontend/build
+blog-frontend/node_modules
+*.log
+.env*
+blog-backend/chi-blog
+blog-backend/blog-backend

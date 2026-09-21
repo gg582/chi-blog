@@ -13,10 +13,12 @@ import (
 
 	"fmt"
 
+	"github.com/gg582/chi-blog/blog-backend/config"
 	"github.com/gg582/chi-blog/blog-backend/database"
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
 
 	"github.com/gg582/chi-blog/blog-backend/handlers"
 	"github.com/gg582/chi-blog/blog-backend/utils"
@@ -25,7 +27,7 @@ import (
 )
 
 const (
-	numWorkers  = 5
+	numWorkers   = 5
 	jobQueueSize = 48
 )
 
@@ -35,43 +37,57 @@ func fileExists(path string) bool {
 }
 
 func main() {
-	var chiBlog = &cobra.Command {
-		Use: "run",
+	var chiBlog = &cobra.Command{
+		Use:   "run",
 		Short: "Run chi-based personal blog",
-		Long: `Run chi-based personal blog backend at localhost:8080`,
+		Long:  `Run chi-based personal blog backend at localhost:8080`,
 		Run: func(cmd *cobra.Command, args []string) {
+			cfg := config.Load()
 			r := chi.NewRouter()
 
 			r.Use(middleware.Logger)
 			r.Use(middleware.Recoverer)
 
+			// --- START OF CHANGES ---
+			// 1. Rename ImageJobQueue to FileJobQueue
+			handlers.FileJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
+			workerpool.NewWorkerPool(numWorkers, handlers.FileJobQueue)
+			// --- END OF CHANGES ---
 
-            // --- START OF CHANGES ---
-            // 1. Rename ImageJobQueue to FileJobQueue
-            handlers.FileJobQueue = make(chan workerpool.UploadJob, jobQueueSize)
-            workerpool.NewWorkerPool(numWorkers, handlers.FileJobQueue)
-            // --- END OF CHANGES ---
+			h := handlers.NewHandlers(cfg.PostsDir, cfg.AssetsDir, cfg.AboutMD, cfg.ContactMD)
+
+			// Add CORS middleware only when ALLOWED_ORIGINS is configured.
+			if len(cfg.AllowedOrigins) > 0 {
+				r.Use(cors.New(cors.Options{
+					AllowedOrigins:   cfg.AllowedOrigins,
+					AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+					AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
+					AllowCredentials: true,
+					MaxAge:           3600,
+				}).Handler)
+			}
 
 			// Define your routes
-			r.Post("/api/posts", handlers.GetPostsHandler)
-			r.Post("/api/posts/{id}", handlers.GetPostByIDHandler)
-			r.Get("/api/about", handlers.GetAboutPageHandler)
-			r.Get("/api/contact", handlers.GetContactPageHandler)
-			r.Post("/api/new-post/{id}", handlers.CreateNewPostHandler) 
-            
-            // --- START OF CHANGES ---
-            // 2. Rename route from /api/upload-image to /api/upload-file
-            // 3. Rename handler from handlers.UploadImage to handlers.UploadFile
-            r.Post("/api/upload-file", handlers.UploadFile)
-            // --- END OF CHANGES ---
-            
-			r.Post("/api/login", handlers.LoginHandler)
-            fileServer := http.FileServer(http.Dir("./posts/assets")) 
-        	r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
+			r.Post("/api/posts", h.GetPostsHandler)
+			r.Post("/api/posts/{id}", h.GetPostByIDHandler)
+			r.Get("/api/about", h.GetAboutPageHandler)
+			r.Get("/api/contact", h.GetContactPageHandler)
+			r.Post("/api/new-post/{id}", h.CreateNewPostHandler)
 
-			// Serve React frontend static files from ../blog-frontend/build
-			staticDir := http.Dir("../blog-frontend/build")
+			// --- START OF CHANGES ---
+			// 2. Rename route from /api/upload-image to /api/upload-file
+			// 3. Rename handler from handlers.UploadImage to handlers.UploadFile
+			r.Post("/api/upload-file", h.UploadFile)
+			// --- END OF CHANGES ---
+
+			r.Post("/api/login", handlers.LoginHandler)
+			fileServer := http.FileServer(http.Dir(cfg.AssetsDir))
+			r.Handle("/assets/*", http.StripPrefix("/assets/", fileServer))
+
+			// Serve React frontend static files from the configured build directory
+			staticDir := http.Dir(cfg.StaticDir)
 			staticFS := http.FileServer(staticDir)
+			indexHTML := filepath.Join(cfg.StaticDir, "index.html")
 
 			r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
 				// API routes are already registered above; let chi handle those first.
@@ -79,60 +95,59 @@ func main() {
 				// If the file doesn't exist (SPA route), serve index.html.
 				path := req.URL.Path
 				if path == "/" {
-					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					http.ServeFile(w, req, indexHTML)
 					return
 				}
 				// Try to open the requested file
 				f, err := staticDir.Open(path)
 				if err != nil {
-					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					http.ServeFile(w, req, indexHTML)
 					return
 				}
 				defer f.Close()
 				// Check if it's a directory
 				stat, err := f.Stat()
 				if err != nil || stat.IsDir() {
-					http.ServeFile(w, req, "../blog-frontend/build/index.html")
+					http.ServeFile(w, req, indexHTML)
 					return
 				}
 				// It's a real file — serve it
 				staticFS.ServeHTTP(w, req)
 			})
 
-			serverAddr := "0.0.0.0:8080"
-			useHTTPS := strings.EqualFold(os.Getenv("USE_HTTPS"), "true")
-			if useHTTPS {
+			serverAddr := cfg.ServerAddr
+			if cfg.UseHTTPS {
 				log.Printf("Server starting on %s (HTTPS)...", serverAddr)
 			} else {
 				log.Printf("Server starting on %s (HTTP)...", serverAddr)
 			}
-			database.InitDatabase()
+			database.InitDatabase(cfg.DBPath)
 			log.Println("Database loaded.")
 
 			// Use HTTPS only when explicitly enabled via USE_HTTPS=true.
-			certFile := "/etc/letsencrypt/live/chatter.pw/fullchain.pem"
-			keyFile := "/etc/letsencrypt/live/chatter.pw/privkey.pem"
+			certFile := cfg.TLSCertFile
+			keyFile := cfg.TLSKeyFile
 
 			var err error
-			if useHTTPS {
+			if cfg.UseHTTPS {
 				certExists := fileExists(certFile) && fileExists(keyFile)
 				if certExists {
-					log.Printf("Found existing TLS certificate files for chatter.pw. Starting HTTPS with local certificate on %s.", serverAddr)
+					log.Printf("Found existing TLS certificate files for %s. Starting HTTPS with local certificate on %s.", cfg.TLSDomain, serverAddr)
 					err = http.ListenAndServeTLS(serverAddr, certFile, keyFile, r)
 				} else {
-					cacheDir := filepath.Join(".", "cert-cache")
+					cacheDir := cfg.ACMECacheDir
 					if mkErr := os.MkdirAll(cacheDir, 0o700); mkErr != nil {
 						log.Fatalf("failed to create autocert cache directory %s: %v", cacheDir, mkErr)
 					}
 
-					log.Printf("TLS certificate not found at %s and %s. Requesting Let's Encrypt certificate for chatter.pw...", certFile, keyFile)
+					log.Printf("TLS certificate not found at %s and %s. Requesting Let's Encrypt certificate for %s...", certFile, keyFile, cfg.TLSDomain)
 					manager := &autocert.Manager{
 						Prompt:     autocert.AcceptTOS,
-						HostPolicy: autocert.HostWhitelist("chatter.pw"),
+						HostPolicy: autocert.HostWhitelist(cfg.TLSDomain),
 						Cache:      autocert.DirCache(cacheDir),
 					}
 
-					challengeAddr := ":80"
+					challengeAddr := cfg.HTTPChallengeAddr
 					challengeListener, listenErr := net.Listen("tcp", challengeAddr)
 					if listenErr != nil {
 						log.Fatalf("failed to bind Let's Encrypt challenge server on %s: %v", challengeAddr, listenErr)
@@ -178,10 +193,10 @@ func main() {
 		},
 	}
 
-	var initAdmin = &cobra.Command {
-		Use: "init",
+	var initAdmin = &cobra.Command{
+		Use:   "init",
 		Short: "Initialize blog admin via cobra",
-		Long: `Initialize blog admin via cobra. You need to install sqlite3.`,
+		Long:  `Initialize blog admin via cobra. You need to install sqlite3.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			log.Println("WARNING: you will add administrator into SQLite. type 'yes' to continue")
 			var r string
@@ -191,7 +206,7 @@ func main() {
 				log.Println("Quitting without registration...")
 				os.Exit(1)
 			}
-			database.InitDatabase()
+			database.InitDatabase(config.Load().DBPath)
 			rows, err := database.DB.Query("SELECT COUNT(*) FROM blog_users")
 			if err != nil {
 				log.Fatalf("Failed to query users: %v", err)

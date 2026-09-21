@@ -8,9 +8,9 @@ import (
 
 var DB *sql.DB
 
-func InitDatabase() {
+func InitDatabase(dbPath string) {
     var err error
-    DB, err = sql.Open("sqlite3", "./auth.db")
+    DB, err = sql.Open("sqlite3", dbPath)
     if err != nil {
         log.Fatalf("Failed to open database: %v", err)
     }

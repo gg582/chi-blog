@@ -16,7 +16,7 @@ import (
 // CreateNewPostHandler handles the submission of a new blog post.
 // It expects a JSON payload with title, author, and markdown content.
 // The post ID (slug) is now provided in the URL path by the frontend.
-func CreateNewPostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) CreateNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the postSlug directly from the URL path.
 	postSlug := chi.URLParam(r, "id") // Assuming your route is /api/new-post/{id}
 	if postSlug == "" {
@@ -51,7 +51,7 @@ func CreateNewPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Define the directory for posts
-	postsDir := "./posts"
+	postsDir := h.PostsDir
 	if _, err := os.Stat(postsDir); os.IsNotExist(err) {
 		err = os.MkdirAll(postsDir, os.ModePerm)
 		if err != nil {

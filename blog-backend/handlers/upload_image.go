@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/gg582/chi-blog/blog-backend/workerpool"
@@ -18,7 +17,7 @@ var FileJobQueue chan workerpool.UploadJob
 
 // UploadFile handles the upload of one or more files in a single multipart form request.
 // It retrieves all uploaded files and submits each one as a job to the worker pool.
-func UploadFile(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) UploadFile(w http.ResponseWriter, r *http.Request) {
 	// Parse the multipart form with a 10MB limit.
 	r.ParseMultipartForm(10 << 20)
 
@@ -28,7 +27,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uploadDirRelative := filepath.Join("posts", "assets")
+	uploadDirRelative := h.AssetsDir
 
 	// Create the upload directory if it doesn't exist.
 	if _, err := os.Stat(uploadDirRelative); os.IsNotExist(err) {

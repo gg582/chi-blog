@@ -14,10 +14,28 @@ import (
 	"github.com/gg582/chi-blog/blog-backend/utils"
 )
 
+// Handlers groups the HTTP handlers that depend on filesystem paths.
+type Handlers struct {
+	PostsDir  string
+	AssetsDir string
+	AboutMD   string
+	ContactMD string
+}
+
+// NewHandlers creates a Handlers with the given content paths.
+func NewHandlers(postsDir, assetsDir, aboutMD, contactMD string) *Handlers {
+	return &Handlers{
+		PostsDir:  postsDir,
+		AssetsDir: assetsDir,
+		AboutMD:   aboutMD,
+		ContactMD: contactMD,
+	}
+}
+
 // GetAboutPageHandler handles fetching the content for the about page.
-func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := filepath.Join("./about", "about.md") // Assuming about.md is in the 'posts' directory
-	
+func (h *Handlers) GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
+	filePath := h.AboutMD
+
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -30,7 +48,7 @@ func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	author, cleanedContent := utils.ParseAuthorAndCleanContent(content)
 	htmlContent := blackfriday.Run(cleanedContent)
-	
+
 	// Determine title from cleaned content, or use a default
 	title := "About Us"
 	lines := strings.Split(string(cleanedContent), "\n")
@@ -55,7 +73,7 @@ func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
 		ContentHTML: string(htmlContent),
 		Author:      author,
 		CreatedAt:   createdAt,
-		FileName:    "about.md",
+		FileName:    filepath.Base(filePath),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -63,9 +81,9 @@ func GetAboutPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetContactPageHandler handles fetching the content for the contact page.
-func GetContactPageHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := filepath.Join("./contact", "contact.md") // Assuming contact.md is in the 'posts' directory
-	
+func (h *Handlers) GetContactPageHandler(w http.ResponseWriter, r *http.Request) {
+	filePath := h.ContactMD
+
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -78,7 +96,7 @@ func GetContactPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	author, cleanedContent := utils.ParseAuthorAndCleanContent(content)
 	htmlContent := blackfriday.Run(cleanedContent)
-	
+
 	// Determine title from cleaned content, or use a default
 	title := "Contact Us"
 	lines := strings.Split(string(cleanedContent), "\n")
@@ -103,7 +121,7 @@ func GetContactPageHandler(w http.ResponseWriter, r *http.Request) {
 		ContentHTML: string(htmlContent),
 		Author:      author,
 		CreatedAt:   createdAt,
-		FileName:    "contact.md",
+		FileName:    filepath.Base(filePath),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
