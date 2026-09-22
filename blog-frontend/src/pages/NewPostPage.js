@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NewPostPage.css';
 import API_BASE_URL from "../config/api";
+import hljs from "../highlight/hljs";
 
 import { marked } from 'marked'; 
 
 marked.setOptions({
   highlight: function(code, lang) {
-    if (window.hljs) {
-      const language = window.hljs.getLanguage(lang) ? lang : 'plaintext';
-      return window.hljs.highlight(code, { language }).value;
+    if (hljs.getLanguage(lang)) {
+      return hljs.highlight(code, { language: lang }).value;
     }
     return code;
   },
@@ -74,17 +74,15 @@ function NewPostPage() {
     const html = marked.parse(content);
     setPreviewHtml(html);
 
-    if (window.hljs) {
-      const previewElement = document.getElementById('markdown-preview');
-      if (previewElement) {
-        previewElement.querySelectorAll('pre code').forEach((block) => {
-          if (!block.classList.contains('hljs')) {
-            window.hljs.highlightElement(block);
-          }
-        });
-      } else {
-        window.hljs.highlightAll();
-      }
+    const previewElement = document.getElementById('markdown-preview');
+    if (previewElement) {
+      previewElement.querySelectorAll('pre code').forEach((block) => {
+        if (!block.classList.contains('hljs')) {
+          hljs.highlightElement(block);
+        }
+      });
+    } else {
+      hljs.highlightAll();
     }
   }, [content]);
 

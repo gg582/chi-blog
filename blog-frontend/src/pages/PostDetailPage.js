@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./PostDetailPage.css";
 import API_BASE_URL, { authHeaders, clearAuthAndRedirect } from "../config/api";
 import { useAuth } from "../context/AuthContext";
+import hljs from "../highlight/hljs";
 
 function PostDetailPage() {
   const { id } = useParams();
@@ -39,12 +40,12 @@ function PostDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (window.hljs && post && post.contentHtml) {
+    if (post && post.contentHtml) {
       const postContentElement = document.querySelector('.post-detail-content');
       if (postContentElement) {
         postContentElement.querySelectorAll('pre code').forEach((block) => {
           if (!block.classList.contains('hljs')) {
-            window.hljs.highlightElement(block);
+            hljs.highlightElement(block);
           }
         });
       }

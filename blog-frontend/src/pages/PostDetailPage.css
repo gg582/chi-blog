@@ -1,6 +1,7 @@
 /* Styles for PostDetailPage */
 
-/* Import the Monokai theme from highlight.js */
+/* Code block colors come from the highlight.js base16/github theme,
+   imported in src/highlight/hljs.js */
 
 .post-detail-page {
     /* Add any page-specific layout if needed */
